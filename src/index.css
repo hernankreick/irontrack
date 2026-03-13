@@ -62,8 +62,7 @@
   }
   /* Modal backdrop */
   .modal-bg {
-    @apply fixed inset-0 z-50 flex items-end justify-center;
-    background: rgba(0,0,0,0.88);
+    @apply fixed inset-0 bg-black/88 z-50 flex items-end justify-center;
   }
   .modal-sheet {
     @apply bg-surface rounded-t-2xl px-4 pb-9 pt-5 w-full max-w-[480px] max-h-[85vh] overflow-y-auto border-t-2 border-border;
