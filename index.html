@@ -1503,7 +1503,7 @@ const notifyAlumno = async (alumnoId, mensaje) => {
               } else {
                 toast2("Dia "+(session.dIdx+1)+" completado! ("+(daysThisWeek)+"/"+totalDays+" dias)");
               }
-            }}>CERRAR</button>
+            }}>✕</button>
           </div>
           <div style={{display:"flex",gap:4,overflowX:"auto"}}>
             {activeDay.exercises.map((ex,i)=>{
@@ -1518,6 +1518,28 @@ const notifyAlumno = async (alumnoId, mensaje) => {
               );
             })}
           </div>
+          <button className="hov" style={{width:"100%",marginTop:8,padding:"14px",background:"#ef4444",
+            color:"#fff",border:"none",borderRadius:12,fontSize:17,fontWeight:900,cursor:"pointer",
+            fontFamily:"inherit",letterSpacing:1}}
+            onClick={()=>{
+              const r=activeR;
+              const dayKey=session.rId+"-"+session.dIdx+"-w"+currentWeek;
+              const newCompleted=completedDays.includes(dayKey)?completedDays:[...completedDays,dayKey];
+              const totalDays=r?r.days.length:1;
+              const daysThisWeek=newCompleted.filter(k=>k.startsWith(session.rId+"-")&&k.endsWith("-w"+currentWeek)).length;
+              setCompletedDays(newCompleted);
+              const durMin=Math.round((Date.now()-(session.startTime||Date.now()))/60000)||1;
+              const exsCompleted=activeDay.exercises||[];
+              const volTotal=exsCompleted.reduce((acc,ex)=>{const kg=parseFloat(ex.kg)||0;const sets=parseInt(ex.sets)||3;const reps=parseInt(ex.reps)||8;return acc+(kg*sets*reps);},0);
+              const prsNuevos=exsCompleted.filter(ex=>{const pg=progress[ex.id];if(!pg||!pg.max)return false;return parseFloat(ex.kg)>pg.max;}).length;
+              setResumenSesion({durMin,ejercicios:exsCompleted.length,totalSets:exsCompleted.reduce((a,e)=>a+(parseInt(e.sets)||3),0),volTotal:Math.round(volTotal),prsNuevos,diaLabel:activeDay.label||("Dia "+(session.dIdx+1)),rutinaName:r?.name||"Entrenamiento",fecha:new Date().toLocaleDateString("es-AR")});
+              setSession(null);
+              if(readOnly&&sharedParam){try{const rutData=JSON.parse(atob(sharedParam));const alumnoId=rutData.alumnoId;if(alumnoId){sb.addSesion({alumno_id:alumnoId,rutina_nombre:r?.name||"",dia_label:activeDay.label||("Dia "+(session.dIdx+1)),dia_idx:session.dIdx,semana:currentWeek+1,ejercicios:exsCompleted.map(e=>e.id).join(","),fecha:new Date().toLocaleDateString("es-AR"),hora:new Date().toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit"})});}}catch(e){}}
+              if(daysThisWeek>=totalDays){setCompletedDays(prev=>prev.filter(k=>!k.endsWith("-w"+currentWeek)));if(currentWeek<3){setCurrentWeek(w=>w+1);toast2("Semana completada! 💪");}else{toast2("Ciclo finalizado! 💪");}}
+              else{toast2("Dia "+(session.dIdx+1)+" completado! 💪");}
+            }}>
+            ✅ {es?"FINALIZAR ENTRENAMIENTO":"FINISH WORKOUT"}
+          </button>
         </div>
       )}
 
