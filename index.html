@@ -1001,12 +1001,12 @@ const notifyAlumno = async (alumnoId, mensaje) => {
         {/* PROGRESO */}
         {tab==="scanner"&&!esAlumno&&(
           <div>
-            <ScannerRutina sb={sb} routines={routines} setRoutines={setRoutines} alumnos={alumnos} toast2={toast2} setTab={setTab}/>
+            <ScannerRutina sb={sb} routines={routines} setRoutines={setRoutines} alumnos={alumnos} toast2={toast2} es={es} setTab={setTab}/>
           </div>
         )}
         {tab==="biblioteca"&&!esAlumno&&(
           <div>
-            <GestionBiblioteca sb={sb} customEx={customEx} setCustomEx={setCustomEx} toast2={toast2}/>
+            <GestionBiblioteca sb={sb} customEx={customEx} setCustomEx={setCustomEx} toast2={toast2} es={es}/>
           </div>
         )}
         {tab==="progress"&&(readOnly||esAlumno)&&(sharedParam||sessionData?.alumnoId)&&(
@@ -1019,12 +1019,12 @@ const notifyAlumno = async (alumnoId, mensaje) => {
         )}
         {tab==="scanner"&&!esAlumno&&(
           <div>
-            <ScannerRutina sb={sb} routines={routines} setRoutines={setRoutines} alumnos={alumnos} toast2={toast2} setTab={setTab}/>
+            <ScannerRutina sb={sb} routines={routines} setRoutines={setRoutines} alumnos={alumnos} toast2={toast2} es={es} setTab={setTab}/>
           </div>
         )}
         {tab==="biblioteca"&&!esAlumno&&(
           <div>
-            <GestionBiblioteca sb={sb} customEx={customEx} setCustomEx={setCustomEx} toast2={toast2}/>
+            <GestionBiblioteca sb={sb} customEx={customEx} setCustomEx={setCustomEx} toast2={toast2} es={es}/>
           </div>
         )}
         {tab==="progress"&&(
@@ -1035,12 +1035,12 @@ const notifyAlumno = async (alumnoId, mensaje) => {
         )}
         {tab==="scanner"&&!esAlumno&&(
           <div>
-            <ScannerRutina sb={sb} routines={routines} setRoutines={setRoutines} alumnos={alumnos} toast2={toast2} setTab={setTab}/>
+            <ScannerRutina sb={sb} routines={routines} setRoutines={setRoutines} alumnos={alumnos} toast2={toast2} es={es} setTab={setTab}/>
           </div>
         )}
         {tab==="biblioteca"&&!esAlumno&&(
           <div>
-            <GestionBiblioteca sb={sb} customEx={customEx} setCustomEx={setCustomEx} toast2={toast2}/>
+            <GestionBiblioteca sb={sb} customEx={customEx} setCustomEx={setCustomEx} toast2={toast2} es={es}/>
           </div>
         )}
         {tab==="progress"&&(
@@ -2585,7 +2585,7 @@ function FotosProgreso({sharedParam, sb, esEntrenador}) {
 }
 
 function GestionBiblioteca({sb, customEx, setCustomEx, toast2, es}) {
-  const allEx = React.useMemo(()=>[...EX, ...(customEx||[])],[customEx]);
+  const allEx = React.useMemo(()=>[...EX,...(customEx||[])],[customEx]);
   const [tab, setTab] = React.useState(0);
   const [busq, setBusq] = React.useState("");
   const [filtPat, setFiltPat] = React.useState("todos");
@@ -2602,22 +2602,23 @@ function GestionBiblioteca({sb, customEx, setCustomEx, toast2, es}) {
   const [borrarId, setBorrarId] = React.useState(null);
 
   const patrones = ["todos","empuje","traccion","rodilla","bisagra","core","movilidad","cardio","oly"];
+  const musculos = ["todos","Cuadriceps","Gluteo","Isquios","Pecho","Dorsal","Hombro","Biceps","Triceps","Core","Pantorrilla"];
+  const patColors = {empuje:"#60a5fa",traccion:"#a78bfa",rodilla:"#4ade80",bisagra:"#f87171",core:"#facc15",movilidad:"#e879f9",cardio:"#22d3ee",oly:"#fbbf24"};
   const patLabel = p => ({
-    todos:"todos", empuje:es?"EMPUJE":"PUSH", traccion:es?"TRACCION":"PULL",
+    todos:es?"TODOS":"ALL", empuje:es?"EMPUJE":"PUSH", traccion:es?"TRACCION":"PULL",
     rodilla:es?"RODILLA":"KNEE", bisagra:es?"BISAGRA":"HINGE", core:"CORE",
     movilidad:es?"MOVILIDAD":"MOBILITY", cardio:"CARDIO", oly:es?"OLIMPICO":"OLYMPIC",
   })[p] || p.toUpperCase();
-  const musculos = ["todos","Cuadriceps","Gluteo","Isquios","Pecho","Dorsal","Hombro","Biceps","Triceps","Core","Cardio"];
-  const patColors = {empuje:"#60a5fa",traccion:"#a78bfa",rodilla:"#4ade80",bisagra:"#f87171",core:"#facc15",movilidad:"#fb923c",cardio:"#34d399",pierna:"#4ade80",movil:"#fb923c"};
+  const musLabel = m => m==="todos"?(es?"TODOS":"ALL"):m==="Dorsal"?(es?"DORSAL":"BACK"):m==="Gluteo"?(es?"GLUTEO":"GLUTE"):m==="Isquios"?(es?"ISQUIOS":"HAMSTRINGS"):m==="Pecho"?(es?"PECHO":"CHEST"):m==="Hombro"?(es?"HOMBRO":"SHOULDER"):m==="Pantorrilla"?(es?"PANTORRILLA":"CALVES"):m.toUpperCase();
 
   const exFiltrados = allEx.filter(e=>{
-    const nombre = es?(e.name):(e.nameEn||e.name); const matchQ = !busq || nombre.toLowerCase().includes(busq.toLowerCase());
+    const nombre = es?e.name:(e.nameEn||e.name);
+    const matchQ = !busq || nombre.toLowerCase().includes(busq.toLowerCase());
     const matchPat = filtPat==="todos" || e.pattern===filtPat;
     const matchMus = filtMus==="todos" || (e.muscle||"").toLowerCase().includes(filtMus.toLowerCase());
     return matchQ && (modoFiltro==="patron"?matchPat:matchMus);
   });
 
-  // Detectar duplicados
   const counts = {};
   allEx.forEach(e=>{ counts[e.name.toLowerCase()]=(counts[e.name.toLowerCase()]||0)+1; });
   const dupCount = Object.values(counts).filter(v=>v>1).length;
@@ -2626,104 +2627,111 @@ function GestionBiblioteca({sb, customEx, setCustomEx, toast2, es}) {
     if(!editNombre.trim()){toast2(es?"Ingresa un nombre":"Enter a name");return;}
     const updated = customEx.map(e=>e.id===editModal.id?{...e,name:editNombre,youtube:editYT}:e);
     setCustomEx(updated);
-    localStorage.setItem("it_customEx", JSON.stringify(updated));
+    localStorage.setItem("it_cex", JSON.stringify(updated));
     setEditModal(null); toast2(es?"Ejercicio actualizado ✓":"Exercise updated ✓");
   };
-
   const borrarEjercicio = (id) => {
     const updated = customEx.filter(e=>e.id!==id);
     setCustomEx(updated);
-    localStorage.setItem("it_customEx", JSON.stringify(updated));
+    localStorage.setItem("it_cex", JSON.stringify(updated));
     setBorrarId(null); toast2(es?"Ejercicio eliminado ✓":"Exercise deleted ✓");
   };
-
   const agregarEjercicio = () => {
-    if(!newNombre.trim()){toast2("Ingresa un nombre");return;}
-    const newEx = {id:"custom_"+Date.now(), name:newNombre, nameEn:newNombre, pattern:newPat, muscle:newMus, equip:newEquip, youtube:newYT, custom:true};
+    if(!newNombre.trim()){toast2(es?"Ingresa un nombre":"Enter a name");return;}
+    const newEx = {id:"custom_"+Date.now(), name:newNombre, nameEn:newNombre, pattern:newPat, muscle:newMus, equip:newEquip||"Libre", youtube:newYT};
     const updated = [...(customEx||[]), newEx];
     setCustomEx(updated);
-    localStorage.setItem("it_customEx", JSON.stringify(updated));
+    localStorage.setItem("it_cex", JSON.stringify(updated));
     setNewNombre(""); setNewPat("empuje"); setNewMus(""); setNewEquip(""); setNewYT("");
     setTab(0); toast2(es?"Ejercicio agregado ✓":"Exercise added ✓");
   };
-
-  const inpS = {background:"#07080d",border:"1px solid #2d3748",borderRadius:8,padding:"10px 12px",color:"#e2e8f0",fontSize:15,width:"100%",fontFamily:"inherit",outline:"none"};
+  const inpS = {background:"#07080d",border:"1px solid #2d3748",borderRadius:8,padding:"10px 12px",color:"#e2e8f0",fontSize:15,width:"100%",fontFamily:"inherit",outline:"none",marginBottom:6};
 
   return (
     <div>
       {/* Tabs */}
       <div style={{display:"flex",borderBottom:"1px solid #1a1d2e",marginBottom:14}}>
-        {[es?"GESTIONAR":"MANAGE",es?"+ NUEVO":"+ NEW"].map((t,i)=>(
-          <button key={i} onClick={()=>setTab(i)} style={{flex:1,padding:"14px",border:"none",background:"none",fontSize:18,fontWeight:800,color:tab===i?"#ef4444":"#4a5568",fontFamily:"inherit",fontSize:13,fontWeight:700,cursor:"pointer",borderBottom:tab===i?"2px solid #ef4444":"2px solid transparent"}}>
-            {t}{i===0&&dupCount>0?<span style={{marginLeft:6,background:"#ef4444",color:"#fff",borderRadius:10,padding:"1px 7px",fontSize:11}}>{dupCount}</span>:null}
+        {[es?"GESTIONAR":"MANAGE", es?"+ NUEVO":"+ NEW"].map((t,i)=>(
+          <button key={i} onClick={()=>setTab(i)} style={{flex:1,padding:"14px",border:"none",background:"none",
+            fontFamily:"inherit",fontSize:18,fontWeight:800,cursor:"pointer",
+            color:tab===i?"#ef4444":"#4a5568",borderBottom:tab===i?"2px solid #ef4444":"2px solid transparent"}}>
+            {t}{i===0&&dupCount>0?<span style={{marginLeft:6,background:"#ef4444",color:"#fff",borderRadius:10,padding:"1px 7px",fontSize:12}}>{dupCount}</span>:null}
           </button>
         ))}
       </div>
 
       {tab===0&&(
         <div>
-          {/* Buscador */}
           <input style={{...inpS,marginBottom:10}} placeholder={es?"🔍 Buscar ejercicio...":"🔍 Search exercise..."} value={busq} onChange={e=>setBusq(e.target.value)}/>
 
-          {/* Seg patron/musculo */}
-          <div style={{display:"flex",background:"#0a0c14",border:"1px solid #1a1d2e",borderRadius:10,padding:3,marginBottom:10}}>
-            {[es?"POR PATRON":"BY PATTERN",es?"POR MUSCULO":"BY MUSCLE"].map((t,i)=>(
-              <button key={i} onClick={()=>{setModoFiltro(i===0?"patron":"musculo");setFiltPat("todos");setFiltMus("todos");}} style={{flex:1,padding:"7px",border:"none",borderRadius:8,background:modoFiltro===(i===0?"patron":"musculo")?"#ef4444":"none",color:modoFiltro===(i===0?"patron":"musculo")?"#fff":"#4a5568",fontFamily:"inherit",fontSize:12,fontWeight:700,cursor:"pointer"}}>
+          <div style={{display:"flex",background:"#0a0c14",border:"1px solid #1a1d2e",borderRadius:10,padding:4,gap:4,marginBottom:10}}>
+            {[es?"POR PATRON":"BY PATTERN", es?"POR MUSCULO":"BY MUSCLE"].map((t,i)=>(
+              <button key={i} onClick={()=>{setModoFiltro(i===0?"patron":"musculo");setFiltPat("todos");setFiltMus("todos");}}
+                style={{flex:1,padding:"10px",border:"none",borderRadius:8,fontFamily:"inherit",fontSize:16,fontWeight:700,cursor:"pointer",
+                  background:modoFiltro===(i===0?"patron":"musculo")?"#ef4444":"transparent",
+                  color:modoFiltro===(i===0?"patron":"musculo")?"#fff":"#4a5568"}}>
                 {t}
               </button>
             ))}
           </div>
 
-          {/* Chips patron */}
           {modoFiltro==="patron"&&(
             <div style={{overflowX:"auto",paddingBottom:6,marginBottom:10}}>
               <div style={{display:"flex",gap:6,width:"max-content"}}>
                 {patrones.map(p=>(
-                  <button key={p} onClick={()=>setFiltPat(p)} style={{padding:"8px 16px",borderRadius:20,fontSize:15,fontWeight:800,cursor:"pointer",border:"1px solid",fontFamily:"inherit",background:filtPat===p?"#ef444422":"#0e1018",borderColor:filtPat===p?"#ef4444":"#2d3748",color:filtPat===p?"#ef4444":"#4a5568",whiteSpace:"nowrap"}}>
-                    {p==="todos"?(es?"TODOS":"ALL"):p==="empuje"?(es?"EMPUJE":"PUSH"):p==="traccion"?(es?"TRACCION":"PULL"):p==="rodilla"?(es?"RODILLA":"KNEE"):p==="bisagra"?(es?"BISAGRA":"HINGE"):p==="core"?"CORE":p==="movilidad"?(es?"MOVILIDAD":"MOBILITY"):p==="cardio"?"CARDIO":p==="oly"?"OLYMPIC":p.toUpperCase()}
+                  <button key={p} onClick={()=>setFiltPat(p)} style={{padding:"8px 16px",borderRadius:20,fontSize:15,fontWeight:800,cursor:"pointer",fontFamily:"inherit",
+                    border:filtPat===p?"1px solid "+patColors[p]:filtPat==="todos"&&p==="todos"?"1px solid #ef4444":"1px solid #2d3748",
+                    background:filtPat===p?patColors[p]+"22":filtPat==="todos"&&p==="todos"?"#ef444422":"#0e1018",
+                    color:filtPat===p?patColors[p]:filtPat==="todos"&&p==="todos"?"#ef4444":"#4a5568"}}>
+                    {patLabel(p)}
                   </button>
                 ))}
               </div>
             </div>
           )}
-          {/* Chips musculo */}
           {modoFiltro==="musculo"&&(
             <div style={{overflowX:"auto",paddingBottom:6,marginBottom:10}}>
               <div style={{display:"flex",gap:6,width:"max-content"}}>
                 {musculos.map(m=>(
-                  <button key={m} onClick={()=>setFiltMus(m==="todos"?"todos":m)} style={{padding:"8px 16px",borderRadius:20,fontSize:15,fontWeight:800,cursor:"pointer",border:"1px solid",fontFamily:"inherit",background:filtMus===(m==="todos"?"todos":m)?"#ef444422":"#0e1018",borderColor:filtMus===(m==="todos"?"todos":m)?"#ef4444":"#2d3748",color:filtMus===(m==="todos"?"todos":m)?"#ef4444":"#4a5568",whiteSpace:"nowrap"}}>
-                    {m==="todos"?(es?"TODOS":"ALL"):m==="Dorsal"?(es?"DORSAL":"BACK/LATS"):m==="Gluteo"?(es?"GLUTEO":"GLUTE"):m==="Isquios"?(es?"ISQUIOS":"HAMSTRINGS"):m==="Pecho"?(es?"PECHO":"CHEST"):m==="Hombro"?(es?"HOMBRO":"SHOULDER"):m==="Biceps"?(es?"BICEPS":"BICEPS"):m==="Triceps"?(es?"TRICEPS":"TRICEPS"):m==="Cuadriceps"?(es?"CUADRICEPS":"QUADS"):m==="Core"?"CORE":m==="Pantorrilla"?(es?"PANTORRILLA":"CALVES"):m.toUpperCase()}
+                  <button key={m} onClick={()=>setFiltMus(m==="todos"?"todos":m)} style={{padding:"8px 16px",borderRadius:20,fontSize:15,fontWeight:800,cursor:"pointer",fontFamily:"inherit",
+                    border:filtMus===m?"1px solid #60a5fa":"1px solid #2d3748",
+                    background:filtMus===m?"#60a5fa22":"#0e1018",
+                    color:filtMus===m?"#60a5fa":"#4a5568"}}>
+                    {musLabel(m)}
                   </button>
                 ))}
               </div>
             </div>
           )}
 
-          <div style={{fontSize:15,color:"#4a5568",marginBottom:10,fontWeight:700}}>{es?"Mostrando":"Showing"} {exFiltrados.length} {es?"ejercicios":"exercises"}</div>
+          <div style={{fontSize:15,color:"#4a5568",marginBottom:10,fontWeight:700}}>
+            {es?"Mostrando":"Showing"} {exFiltrados.length} {es?"ejercicios de":"exercises of"} {allEx.length}
+          </div>
 
           {exFiltrados.map(e=>{
             const isDup = counts[e.name.toLowerCase()]>1;
             const patCol = patColors[e.pattern]||"#9ca3af";
             const isCustom = !!(customEx||[]).find(c=>c.id===e.id);
+            const nombre = es?e.name:(e.nameEn||e.name);
             return (
-              <div key={e.id} style={{background:"#0e1018",border:"1px solid "+(isDup?"#ef444444":"#1a1d2e"),borderRadius:12,padding:12,marginBottom:8}}>
+              <div key={e.id} style={{background:"#0e1018",border:"1px solid "+(isDup?"#ef444444":"#1a1d2e"),borderRadius:12,padding:"12px 14px",marginBottom:8}}>
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
                   <div style={{flex:1,minWidth:0}}>
-                    <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
-                      <div style={{fontSize:18,fontWeight:800}}>{es?e.name:(e.nameEn||e.name)}</div>
+                    <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap",marginBottom:5}}>
+                      <div style={{fontSize:18,fontWeight:800}}>{nombre}</div>
                       {e.youtube&&<span style={{fontSize:13}}>▶️</span>}
-                      {isDup&&<span style={{background:"#ef444422",color:"#ef4444",border:"1px solid #ef444433",borderRadius:5,padding:"1px 6px",fontSize:10,fontWeight:700}}>DUP</span>}
-                      {isCustom&&<span style={{background:"#a78bfa22",color:"#a78bfa",border:"1px solid #a78bfa33",borderRadius:5,padding:"1px 6px",fontSize:10,fontWeight:700}}>CUSTOM</span>}
+                      {isDup&&<span style={{background:"#ef444422",color:"#ef4444",border:"1px solid #ef444433",borderRadius:5,padding:"2px 7px",fontSize:11,fontWeight:700}}>DUP</span>}
+                      {isCustom&&<span style={{background:"#a78bfa22",color:"#a78bfa",border:"1px solid #a78bfa33",borderRadius:5,padding:"2px 7px",fontSize:11,fontWeight:700}}>CUSTOM</span>}
                     </div>
-                    <div style={{display:"flex",gap:5,marginTop:4,flexWrap:"wrap"}}>
-                      <span style={{background:patCol+"22",color:patCol,padding:"3px 10px",borderRadius:6,fontSize:14,fontWeight:800}}>{(e.pattern||"").toUpperCase()}</span>
-                      {e.muscle&&<span style={{background:"#1a1d2e",color:"#9ca3af",padding:"2px 7px",borderRadius:5,fontSize:11,fontWeight:700}}>{e.muscle}</span>}
+                    <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+                      <span style={{background:patCol+"22",color:patCol,padding:"3px 10px",borderRadius:6,fontSize:14,fontWeight:800}}>{patLabel(e.pattern)}</span>
+                      {e.muscle&&<span style={{background:"#1a1d2e",color:"#9ca3af",padding:"3px 10px",borderRadius:6,fontSize:13,fontWeight:700}}>{e.muscle}</span>}
                     </div>
                   </div>
                   {isCustom&&(
                     <div style={{display:"flex",gap:6,flexShrink:0}}>
-                      <button onClick={()=>{setEditModal(e);setEditNombre(e.name);setEditYT(e.youtube||"");}} style={{background:"#1a1d2e",color:"#9ca3af",border:"1px solid #2d3748",borderRadius:8,padding:"6px 10px",fontSize:13,fontWeight:700,cursor:"pointer"}}>✏️</button>
-                      <button onClick={()=>setBorrarId(e.id)} style={{background:"#ef444422",color:"#ef4444",border:"1px solid #ef444433",borderRadius:8,padding:"6px 10px",fontSize:13,fontWeight:700,cursor:"pointer"}}>🗑️</button>
+                      <button onClick={()=>{setEditModal(e);setEditNombre(e.name);setEditYT(e.youtube||"");}} style={{background:"#1a1d2e",border:"none",borderRadius:8,padding:"6px 10px",color:"#9ca3af",cursor:"pointer",fontSize:14}}>✏️</button>
+                      <button onClick={()=>setBorrarId(e.id)} style={{background:"#ef444422",color:"#ef4444",border:"none",borderRadius:8,padding:"6px 10px",cursor:"pointer",fontSize:14}}>🗑</button>
                     </div>
                   )}
                 </div>
@@ -2738,13 +2746,16 @@ function GestionBiblioteca({sb, customEx, setCustomEx, toast2, es}) {
           <div style={{fontSize:16,color:"#9ca3af",marginBottom:16}}>{es?"El ejercicio quedara disponible en la biblioteca para armar rutinas.":"The exercise will be available in the library to build routines."}</div>
           <div style={{marginBottom:12}}>
             <div style={{fontSize:15,fontWeight:800,color:"#9ca3af",letterSpacing:1,marginBottom:6}}>{es?"NOMBRE *":"NAME *"}</div>
-            <input style={inpS} value={newNombre} onChange={e=>setNewNombre(e.target.value)} placeholder="Ej: Hip Thrust con Barra"/>
+            <input style={inpS} value={newNombre} onChange={e=>setNewNombre(e.target.value)} placeholder={es?"Ej: Press inclinado con mancuernas":"Ex: Incline Dumbbell Press"}/>
           </div>
           <div style={{marginBottom:12}}>
-            <div style={{fontSize:11,fontWeight:700,color:"#4a5568",letterSpacing:1,marginBottom:6}}>{es?"PATRON":"PATTERN"}</div>
+            <div style={{fontSize:15,fontWeight:800,color:"#9ca3af",letterSpacing:1,marginBottom:6}}>{es?"PATRON":"PATTERN"}</div>
             <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-              {["empuje","traccion","rodilla","bisagra","core","movilidad","cardio"].map(p=>(
-                <button key={p} onClick={()=>setNewPat(p)} style={{padding:"9px 14px",borderRadius:8,fontSize:15,fontWeight:700,border:"1px solid",fontFamily:"inherit",fontSize:12,fontWeight:700,cursor:"pointer",background:newPat===p?"#ef444422":"#1a1d2e",borderColor:newPat===p?"#ef4444":"#2d3748",color:newPat===p?"#ef4444":"#9ca3af"}}>
+              {["empuje","traccion","rodilla","bisagra","core","movilidad","cardio","oly"].map(p=>(
+                <button key={p} onClick={()=>setNewPat(p)} style={{padding:"9px 14px",borderRadius:8,fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"inherit",
+                  border:newPat===p?"1px solid "+(patColors[p]||"#ef4444"):"1px solid #2d3748",
+                  background:newPat===p?(patColors[p]||"#ef4444")+"22":"#0e1018",
+                  color:newPat===p?(patColors[p]||"#ef4444"):"#4a5568"}}>
                   {patLabel(p)}
                 </button>
               ))}
@@ -2752,62 +2763,57 @@ function GestionBiblioteca({sb, customEx, setCustomEx, toast2, es}) {
           </div>
           <div style={{marginBottom:12}}>
             <div style={{fontSize:15,fontWeight:800,color:"#9ca3af",letterSpacing:1,marginBottom:6}}>{es?"MUSCULO":"MUSCLE"}</div>
-            <input style={inpS} value={newMus} onChange={e=>setNewMus(e.target.value)} placeholder="Ej: Pecho, Triceps, Hombro"/>
+            <input style={inpS} value={newMus} onChange={e=>setNewMus(e.target.value)} placeholder={es?"Ej: Pecho, Triceps":"Ex: Chest, Triceps"}/>
           </div>
           <div style={{marginBottom:12}}>
             <div style={{fontSize:15,fontWeight:800,color:"#9ca3af",letterSpacing:1,marginBottom:6}}>{es?"EQUIPAMIENTO":"EQUIPMENT"}</div>
-            <input style={inpS} value={newEquip} onChange={e=>setNewEquip(e.target.value)} placeholder="Ej: Barra, Mancuernas, Polea"/>
+            <input style={inpS} value={newEquip} onChange={e=>setNewEquip(e.target.value)} placeholder={es?"Ej: Barra, Mancuernas, Libre":"Ex: Barbell, Dumbbells, Bodyweight"}/>
           </div>
           <div style={{marginBottom:20}}>
-            <div style={{fontSize:15,fontWeight:800,color:"#9ca3af",letterSpacing:1,marginBottom:6}}>LINK YOUTUBE <span style={{fontWeight:400,color:"#4a5568"}}>(opcional)</span></div>
-            <input style={inpS} value={newYT} onChange={e=>setNewYT(e.target.value)} placeholder="https://youtube.com/watch?v=..."/>
+            <div style={{fontSize:15,fontWeight:800,color:"#9ca3af",letterSpacing:1,marginBottom:6}}>LINK YOUTUBE</div>
+            <input style={inpS} value={newYT} onChange={e=>setNewYT(e.target.value)} placeholder="https://youtube.com/..."/>
             {newYT&&(newYT.includes("youtube")||newYT.includes("youtu.be"))&&(
-              <div style={{marginTop:8,background:"#0a0c14",border:"1px solid #1a1d2e",borderRadius:10,padding:10,display:"flex",alignItems:"center",gap:10}}>
-                <div style={{width:50,height:30,background:"#ef444422",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>▶️</div>
-                <div><div style={{fontSize:12,fontWeight:700,color:"#22c55e"}}>Link valido ✓</div><div style={{fontSize:11,color:"#4a5568"}}>{newYT.replace("https://","").slice(0,40)}</div></div>
-              </div>
+              <div style={{marginTop:6,fontSize:13,color:"#22c55e",fontWeight:700}}>▶️ {es?"Link valido ✓":"Valid link ✓"}</div>
             )}
           </div>
-          <button onClick={agregarEjercicio} style={{width:"100%",padding:13,background:"#ef4444",color:"#fff",border:"none",borderRadius:10,fontFamily:"inherit",fontSize:16,fontWeight:700,cursor:"pointer"}}>
+          <button onClick={agregarEjercicio} style={{width:"100%",padding:13,background:"#ef4444",color:"#fff",border:"none",borderRadius:10,fontSize:16,fontWeight:800,cursor:"pointer",fontFamily:"inherit"}}>
             {es?"+ AGREGAR EJERCICIO":"+ ADD EXERCISE"}
           </button>
         </div>
       )}
 
-      {/* Modal editar */}
       {editModal&&(
-        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.88)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={()=>setEditModal(null)}>
-          <div style={{background:"#0e1018",borderRadius:16,padding:20,width:"100%",maxWidth:420,border:"1px solid #2d3748"}} onClick={e=>e.stopPropagation()}>
-            <div style={{fontSize:17,fontWeight:800,marginBottom:16}}>Editar ejercicio</div>
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.88)",zIndex:200,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={()=>setEditModal(null)}>
+          <div style={{background:"#0e1018",borderRadius:"16px 16px 0 0",padding:20,width:"100%",maxWidth:480,border:"1px solid #1a1d2e"}} onClick={e=>e.stopPropagation()}>
+            <div style={{fontSize:17,fontWeight:800,marginBottom:16}}>{es?"Editar ejercicio":"Edit exercise"}</div>
             <div style={{marginBottom:12}}>
-              <div style={{fontSize:15,fontWeight:800,color:"#9ca3af",letterSpacing:1,marginBottom:6}}>NOMBRE</div>
+              <div style={{fontSize:11,fontWeight:700,color:"#4a5568",letterSpacing:1,marginBottom:5}}>{es?"NOMBRE":"NAME"}</div>
               <input style={inpS} value={editNombre} onChange={e=>setEditNombre(e.target.value)}/>
             </div>
             <div style={{marginBottom:18}}>
-              <div style={{fontSize:15,fontWeight:800,color:"#9ca3af",letterSpacing:1,marginBottom:6}}>"LINK YOUTUBE"</div>
-              <input style={inpS} value={editYT} onChange={e=>setEditYT(e.target.value)} placeholder="https://youtube.com/watch?v=..."/>
+              <div style={{fontSize:11,fontWeight:700,color:"#4a5568",letterSpacing:1,marginBottom:5}}>LINK YOUTUBE</div>
+              <input style={inpS} value={editYT} onChange={e=>setEditYT(e.target.value)} placeholder="https://youtube.com/..."/>
               {editYT&&(editYT.includes("youtube")||editYT.includes("youtu.be"))&&(
-                <div style={{marginTop:6,fontSize:12,color:"#22c55e",fontWeight:700}}>▶️ Link valido ✓</div>
+                <div style={{marginTop:6,fontSize:12,color:"#22c55e",fontWeight:700}}>▶️ {es?"Link valido ✓":"Valid link ✓"}</div>
               )}
             </div>
             <div style={{display:"flex",gap:8}}>
-              <button onClick={()=>setEditModal(null)} style={{flex:1,padding:11,background:"#1a1d2e",color:"#9ca3af",border:"1px solid #2d3748",borderRadius:10,fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:"pointer"}}>Cancelar</button>
-              <button onClick={guardarEdicion} style={{flex:1,padding:11,background:"#ef4444",color:"#fff",border:"none",borderRadius:10,fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:"pointer"}}>Guardar</button>
+              <button onClick={()=>setEditModal(null)} style={{flex:1,padding:11,background:"#1a1d2e",color:"#9ca3af",border:"none",borderRadius:8,fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>{es?"CANCELAR":"CANCEL"}</button>
+              <button onClick={guardarEdicion} style={{flex:1,padding:11,background:"#ef4444",color:"#fff",border:"none",borderRadius:8,fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>{es?"GUARDAR":"SAVE"}</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal confirmar borrar */}
       {borrarId&&(
-        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.88)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={()=>setBorrarId(null)}>
-          <div style={{background:"#0e1018",borderRadius:16,padding:20,width:"100%",maxWidth:320,border:"1px solid #2d3748",textAlign:"center"}} onClick={e=>e.stopPropagation()}>
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.88)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:"0 16px"}} onClick={()=>setBorrarId(null)}>
+          <div style={{background:"#0e1018",borderRadius:16,padding:20,width:"100%",maxWidth:320,border:"1px solid #1a1d2e",textAlign:"center"}} onClick={e=>e.stopPropagation()}>
             <div style={{fontSize:30,marginBottom:8}}>🗑️</div>
-            <div style={{fontSize:16,fontWeight:800,marginBottom:6}}>Borrar ejercicio?</div>
-            <div style={{fontSize:13,color:"#9ca3af",marginBottom:18}}>Esta accion no se puede deshacer</div>
+            <div style={{fontSize:16,fontWeight:800,marginBottom:6}}>{es?"Borrar ejercicio?":"Delete exercise?"}</div>
+            <div style={{fontSize:13,color:"#9ca3af",marginBottom:18}}>{es?"Esta accion no se puede deshacer":"This action cannot be undone"}</div>
             <div style={{display:"flex",gap:8}}>
-              <button onClick={()=>setBorrarId(null)} style={{flex:1,padding:10,background:"#1a1d2e",color:"#9ca3af",border:"1px solid #2d3748",borderRadius:10,fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:"pointer"}}>Cancelar</button>
-              <button onClick={()=>borrarEjercicio(borrarId)} style={{flex:1,padding:10,background:"#ef4444",color:"#fff",border:"none",borderRadius:10,fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:"pointer"}}>Borrar</button>
+              <button onClick={()=>setBorrarId(null)} style={{flex:1,padding:10,background:"#1a1d2e",color:"#9ca3af",border:"none",borderRadius:8,fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>{es?"CANCELAR":"CANCEL"}</button>
+              <button onClick={()=>borrarEjercicio(borrarId)} style={{flex:1,padding:10,background:"#ef4444",color:"#fff",border:"none",borderRadius:8,fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>{es?"BORRAR":"DELETE"}</button>
             </div>
           </div>
         </div>
@@ -2817,8 +2823,7 @@ function GestionBiblioteca({sb, customEx, setCustomEx, toast2, es}) {
 }
 
 
-
-function ScannerRutina({sb, routines, setRoutines, alumnos, toast2, setTab}) {
+function ScannerRutina({sb, routines, setRoutines, alumnos, toast2, setTab, es}) {
   const [paso, setPaso] = React.useState(1);
   const [procesando, setProcesando] = React.useState(false);
   const [progreso, setProgreso] = React.useState(0);
@@ -2835,7 +2840,7 @@ function ScannerRutina({sb, routines, setRoutines, alumnos, toast2, setTab}) {
 
   const procesarImagen = async (base64) => {
     setPaso(2); setProcesando(true); setProgreso(0);
-    const msgs = ["Detectando texto...","Reconociendo ejercicios...","Searching library...","Analizando series y reps...","Finalizando..."];
+    const msgs = ["Detectando texto...","Reconociendo ejercicios...",es?"Buscando en biblioteca...":"Searching library...","Analizando series y reps...","Finalizando..."];
     let i=0;
     const timer = setInterval(()=>{ if(i<msgs.length){setProgreso((i+1)*18);setStatusMsg(msgs[i]);i++;}else{clearInterval(timer);} },600);
 
@@ -2861,7 +2866,7 @@ Si no ves un valor claro de series o reps, usa null. Maximo 20 ejercicios.`}
       const txt = data.content?.find(c=>c.type==="text")?.text||"{}";
       let parsed;
       try{ parsed=JSON.parse(txt); }catch(e){ parsed={nombreRutina:"Rutina Escaneada",ejercicios:[]}; }
-      setProgreso(100); setStatusMsg("Analysis complete");
+      setProgreso(100); setStatusMsg(es?"Analisis completo":"Analysis complete");
 
       // Cruzar con biblioteca
       const exConMatch = (parsed.ejercicios||[]).map(ej=>{
@@ -2942,8 +2947,8 @@ Si no ves un valor claro de series o reps, usa null. Maximo 20 ejercicios.`}
       {/* PASO 1: SUBIR */}
       {paso===1&&(
         <div>
-          <div style={{fontSize:17,fontWeight:800,marginBottom:4}}>"Scan paper routine"</div>
-          <div style={{fontSize:13,color:"#9ca3af",marginBottom:20}}>"AI detects exercises, sets and reps."ciones automaticamente.</div>
+          <div style={{fontSize:17,fontWeight:800,marginBottom:4}}>{es?"Escanear rutina en papel":"Scan paper routine"}</div>
+          <div style={{fontSize:13,color:"#9ca3af",marginBottom:20}}>{es?"La IA detecta ejercicios, series y repeticiones automaticamente.":"AI automatically detects exercises, sets and reps."}</div>
 
           <input ref={fileRef} type="file" accept="image/*" capture="environment" style={{display:"none"}} onChange={handleFile}/>
           <input ref={fileGalRef} type="file" accept="image/*" style={{display:"none"}} onChange={handleFile}/>
@@ -2951,22 +2956,22 @@ Si no ves un valor claro de series o reps, usa null. Maximo 20 ejercicios.`}
           <div style={{display:"flex",gap:10,marginBottom:14}}>
             <button onClick={()=>fileRef.current.click()} style={{flex:1,padding:"16px 10px",background:"#ef444422",border:"2px solid #ef444444",borderRadius:14,color:"#ef4444",fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:"pointer",textAlign:"center"}}>
               <div style={{fontSize:32,marginBottom:6}}>📸</div>
-              <div>TAKE PHOTO</div>
-              <div style={{fontSize:11,color:"#9ca3af",marginTop:3}}>Open camera</div>
+              <div>{es?"SACAR FOTO":"TAKE PHOTO"}</div>
+              <div style={{fontSize:11,color:"#9ca3af",marginTop:3}}>{es?"Abrir camara":"Open camera"}</div>
             </button>
             <button onClick={()=>fileGalRef.current.click()} style={{flex:1,padding:"16px 10px",background:"#1a1d2e",border:"2px solid #2d3748",borderRadius:14,color:"#9ca3af",fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:"pointer",textAlign:"center"}}>
               <div style={{fontSize:32,marginBottom:6}}>🖼️</div>
-              <div>UPLOAD FILE</div>
-              <div style={{fontSize:11,color:"#4a5568",marginTop:3}}>From gallery</div>
+              <div>{es?"CARGAR ARCHIVO":"UPLOAD FILE"}</div>
+              <div style={{fontSize:11,color:"#4a5568",marginTop:3}}>{es?"Foto de galeria":"From gallery"}</div>
             </button>
           </div>
 
           <div style={{background:"#0a0c14",border:"1px solid #1a1d2e",borderRadius:12,padding:12}}>
-            <div style={{fontSize:12,fontWeight:700,color:"#4a5568",marginBottom:8,letterSpacing:.5}}>TIPS</div>
+            <div style={{fontSize:12,fontWeight:700,color:"#4a5568",marginBottom:8,letterSpacing:.5}}>{es?"CONSEJOS":"TIPS"}</div>
             <div style={{fontSize:12,color:"#9ca3af",display:"flex",flexDirection:"column",gap:5}}>
-              <div>✅ Good lighting, no shadows</div>
-              <div>✅ Sheet centered and legible</div>
-              <div>✅ Formats: "4x8", "3 sets of 10", "4 sets x 6 reps"</div>
+              <div>{es?"✅ Buena iluminacion, sin sombras":"✅ Good lighting, no shadows"}</div>
+              <div>{es?"✅ Hoja bien centrada y legible":"✅ Sheet centered and legible"}</div>
+              <div>{es?"✅ Formatos: \"4x8\", \"3 series de 10\"":"✅ Formats: \"4x8\", \"3 sets of 10\""}</div>
             </div>
           </div>
         </div>
@@ -2988,8 +2993,8 @@ Si no ves un valor claro de series o reps, usa null. Maximo 20 ejercicios.`}
       {/* PASO 3: REVISAR */}
       {paso===3&&resultado&&(
         <div>
-          <div style={{fontSize:17,fontWeight:800,marginBottom:4}}>"Review detected routine"</div>
-          <div style={{fontSize:13,color:"#9ca3af",marginBottom:14}}>"You can edit values before saving."</div>
+          <div style={{fontSize:17,fontWeight:800,marginBottom:4}}>{es?"Revisa la rutina detectada":"Review detected routine"}</div>
+          <div style={{fontSize:13,color:"#9ca3af",marginBottom:14}}>{es?"Podes editar antes de guardar.":"You can edit values before saving."}</div>
 
           <div style={{background:"#22c55e15",border:"1px solid #22c55e33",borderRadius:10,padding:"10px 12px",marginBottom:14,display:"flex",alignItems:"center",gap:8}}>
             <span style={{fontSize:18}}>✅</span>
@@ -3000,14 +3005,14 @@ Si no ves un valor claro de series o reps, usa null. Maximo 20 ejercicios.`}
           </div>
 
           <div style={{marginBottom:14}}>
-            <div style={{fontSize:11,fontWeight:700,color:"#4a5568",letterSpacing:1,marginBottom:5}}>NAME</div>
+            <div style={{fontSize:11,fontWeight:700,color:"#4a5568",letterSpacing:1,marginBottom:5}}>{es?"NOMBRE":"NAME"}</div>
             <input style={inpS} value={nombreRutina} onChange={e=>setNombreRutina(e.target.value)}/>
           </div>
 
           {/* Ejercicios encontrados */}
           {resultado.ejercicios.filter(e=>e.match||e.selManual).length>0&&(
             <div>
-              <div style={{fontSize:11,fontWeight:700,color:"#22c55e",letterSpacing:1,marginBottom:7}}>✅ FOUND ({resultado.ejercicios.filter(e=>e.match||e.selManual).length})</div>
+              <div style={{fontSize:11,fontWeight:700,color:"#22c55e",letterSpacing:1,marginBottom:7}}>{es?"✅ ENCONTRADOS":"✅ FOUND"} ({resultado.ejercicios.filter(e=>e.match||e.selManual).length})</div>
               {resultado.ejercicios.map((ej,i)=>{
                 if(!ej.match&&!ej.selManual) return null;
                 const ref = ej.selManual||ej.match;
@@ -3029,7 +3034,7 @@ Si no ves un valor claro de series o reps, usa null. Maximo 20 ejercicios.`}
           {/* Ejercicios NO encontrados */}
           {resultado.ejercicios.filter(e=>!e.match&&!e.selManual).length>0&&(
             <div>
-              <div style={{fontSize:11,fontWeight:700,color:"#f97316",letterSpacing:1,margin:"14px 0 7px"}}>⚠️ NOT FOUND ({resultado.ejercicios.filter(e=>!e.match&&!e.selManual).length})</div>
+              <div style={{fontSize:11,fontWeight:700,color:"#f97316",letterSpacing:1,margin:"14px 0 7px"}}>{es?"⚠️ NO ENCONTRADOS":"⚠️ NOT FOUND"} ({resultado.ejercicios.filter(e=>!e.match&&!e.selManual).length})</div>
               {resultado.ejercicios.map((ej,i)=>{
                 if(ej.match||ej.selManual) return null;
                 const resBib = ej.busqueda?.length>=2 ? allEx.filter(e=>e.name.toLowerCase().includes(ej.busqueda.toLowerCase())).slice(0,4) : [];
@@ -3043,7 +3048,7 @@ Si no ves un valor claro de series o reps, usa null. Maximo 20 ejercicios.`}
                       <span style={{background:"#f9731622",color:"#f97316",border:"1px solid #f9731433",borderRadius:5,padding:"2px 7px",fontSize:10,fontWeight:700,flexShrink:0,marginLeft:6}}>SIN MATCH</span>
                     </div>
                     <div style={{fontSize:11,fontWeight:700,color:"#4a5568",letterSpacing:.8,marginBottom:5}}>BUSCAR EN BIBLIOTECA</div>
-                    <input style={inpS} placeholder="Type the correct name..." value={ej.busqueda||""} onChange={e=>buscarEnBib(i,e.target.value)}/>
+                    <input style={inpS} placeholder={es?"Escribi el nombre correcto...":"Type the correct name..."} value={ej.busqueda||""} onChange={e=>buscarEnBib(i,e.target.value)}/>
                     {resBib.length>0&&(
                       <div style={{background:"#07080d",border:"1px solid #2d3748",borderRadius:10,overflow:"hidden",marginTop:6}}>
                         {resBib.map(ex=>(
@@ -3058,7 +3063,7 @@ Si no ves un valor claro de series o reps, usa null. Maximo 20 ejercicios.`}
                       </div>
                     )}
                     {ej.busqueda?.length>=2&&resBib.length===0&&(
-                      <div style={{fontSize:12,color:"#4a5568",textAlign:"center",padding:"8px 0"}}>No results — add it below</div>
+                      <div style={{fontSize:12,color:"#4a5568",textAlign:"center",padding:"8px 0"}}>{es?"Sin resultados — agregalo abajo":"No results — add it below"}</div>
                     )}
                     <div style={{fontSize:11,color:"#4a5568",textAlign:"center",margin:"10px 0 7px"}}>— o si no esta en biblioteca —</div>
                     <div style={{display:"flex",gap:7}}>
@@ -3073,7 +3078,7 @@ Si no ves un valor claro de series o reps, usa null. Maximo 20 ejercicios.`}
 
           {}
           <div style={{marginTop:16,marginBottom:6}}>
-            <div style={{fontSize:13,fontWeight:700,marginBottom:8}}>Assign to athlete <span style={{color:"#4a5568",fontWeight:400}}>(opcional)</span></div>
+            <div style={{fontSize:13,fontWeight:700,marginBottom:8}}>{es?"Asignar a alumno":"Assign to athlete"} <span style={{color:"#4a5568",fontWeight:400}}>(opcional)</span></div>
             {alumnos.map(a=>(
               <div key={a.id} onClick={()=>setAlumnoSel(alumnoSel===a.id?null:a.id)} style={{background:"#07080d",border:"2px solid "+(alumnoSel===a.id?"#ef4444":"#1a1d2e"),borderRadius:10,padding:"10px 12px",marginBottom:7,display:"flex",alignItems:"center",gap:10,cursor:"pointer"}}>
                 <div style={{width:32,height:32,background:"#ef444422",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,color:"#ef4444",flexShrink:0}}>{a.nombre?.[0]}</div>
