@@ -1,165 +1,149 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#07080d">
-  <title>IRON TRACK</title>
-  <style>* { box-sizing: border-box; margin: 0; padding: 0; } html, body, #root { height: 100%; background: #07080d; } @media print { nav { display: none !important; } body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } @page { margin: 5mm; } }</style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>IRON TRACK</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0;}
+body{background:#07080d;color:#e2e8f0;font-family:"Barlow Condensed",Arial,sans-serif;overscroll-behavior:none;overflow:hidden;}
+::-webkit-scrollbar{display:none;}
+input,select,textarea,button{font-family:"Barlow Condensed",Arial,sans-serif;}
+.hov{transition:opacity .15s;cursor:pointer;}
+.hov:active{opacity:.7;}
+</style>
 </head>
 <body>
-  <div id="root"><div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#07080d;color:#ef4444;font-family:Arial Black,Arial;font-size:22px;letter-spacing:3px">IRON TRACK</div></div>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.10/babel.min.js"></script>
-  <script type="text/babel" data-presets="react">
-const { useState, useEffect, useRef } = React;
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef, useMemo } = React;
 
 const PATS = {
-  empuje:   {label:"EMPUJE",           labelEn:"PUSH",        color:"#60a5fa", icon:"💪"},
-  traccion: {label:"TRACCION",         labelEn:"PULL",        color:"#a78bfa", icon:"🔙"},
-  rodilla:  {label:"RODILLA DOM.",     labelEn:"KNEE DOM.",   color:"#4ade80", icon:"🦵"},
-  bisagra:  {label:"BISAGRA CADERA",   labelEn:"HIP HINGE",  color:"#f87171", icon:"⬇️"},
-  core:     {label:"CORE",             labelEn:"CORE",        color:"#facc15", icon:"🎯"},
-  movilidad:{label:"MOVILIDAD",        labelEn:"MOBILITY",    color:"#fb923c", icon:"🌀"},
-  cardio:   {label:"CARDIO",           labelEn:"CARDIO",      color:"#34d399", icon:"🏃"},
-  pierna:   {label:"PIERNA",           labelEn:"LEGS",        color:"#4ade80", icon:"🦵"},
-  movil:    {label:"MOVILIDAD",        labelEn:"MOBILITY",    color:"#fb923c", icon:"🌀"},
+  rodilla:  {label:"RODILLA",   labelEn:"KNEE",      color:"#4ade80", icon:"🦵"},
+  bisagra:  {label:"BISAGRA",   labelEn:"HINGE",     color:"#f87171", icon:"🍑"},
+  empuje:   {label:"EMPUJE",    labelEn:"PUSH",      color:"#60a5fa", icon:"💪"},
+  traccion: {label:"TRACCION",  labelEn:"PULL",      color:"#a78bfa", icon:"🔙"},
+  core:     {label:"CORE",      labelEn:"CORE",      color:"#facc15", icon:"🎯"},
+  movilidad:{label:"MOVILIDAD", labelEn:"MOBILITY",  color:"#e879f9", icon:"🌀"},
+  cardio:   {label:"CARDIO",    labelEn:"CARDIO",    color:"#22d3ee", icon:"🏃"},
+  oly:      {label:"OLIMPICO",  labelEn:"OLYMPIC",   color:"#fbbf24", icon:"🏋️"},
 };
 
 const EX = [
-  {id:"sq",    name:"Sentadilla Barra",   nameEn:"Barbell Squat",    pattern:"pierna",  muscle:"Cuadriceps",         equip:"Barra"},
-  {id:"lp",    name:"Prensa Piernas",     nameEn:"Leg Press",        pattern:"pierna",  muscle:"Cuadriceps/Gluteo",  equip:"Maquina"},
-  {id:"lunge", name:"Zancada",            nameEn:"Lunge",            pattern:"pierna",  muscle:"Cuadriceps",         equip:"Mancuernas"},
-  {id:"dl",    name:"Peso Muerto",        nameEn:"Deadlift",         pattern:"pierna",  muscle:"Isquios/Gluteo",     equip:"Barra"},
-  {id:"rdl",   name:"PM Rumano",          nameEn:"Romanian DL",      pattern:"pierna",  muscle:"Isquios/Gluteo",     equip:"Barra"},
-  {id:"hcurl", name:"Curl Femoral",       nameEn:"Leg Curl",         pattern:"pierna",  muscle:"Isquios",            equip:"Maquina"},
-  {id:"hip",   name:"Hip Thrust",         nameEn:"Hip Thrust",       pattern:"pierna",  muscle:"Gluteos",            equip:"Barra"},
-  {id:"calf",  name:"Pantorrillas",       nameEn:"Calf Raise",       pattern:"pierna",  muscle:"Gemelos",            equip:"Maquina"},
-  {id:"bp",    name:"Press Banca",        nameEn:"Bench Press",      pattern:"empuje",  muscle:"Pecho",              equip:"Barra"},
-  {id:"ibp",   name:"Press Inclinado",    nameEn:"Incline Press",    pattern:"empuje",  muscle:"Pecho Alto",         equip:"Barra"},
-  {id:"dbp",   name:"Press Mancuernas",   nameEn:"DB Bench",         pattern:"empuje",  muscle:"Pecho",              equip:"Mancuernas"},
-  {id:"fly",   name:"Aperturas",          nameEn:"Chest Fly",        pattern:"empuje",  muscle:"Pecho",              equip:"Mancuernas"},
-  {id:"ohp",   name:"Press Militar",      nameEn:"Overhead Press",   pattern:"empuje",  muscle:"Hombro",             equip:"Barra"},
-  {id:"late",  name:"Elev. Lateral",      nameEn:"Lateral Raise",    pattern:"empuje",  muscle:"Hombro Lateral",     equip:"Mancuernas"},
-  {id:"dip",   name:"Fondos",             nameEn:"Dips",             pattern:"empuje",  muscle:"Pecho/Triceps",      equip:"Paralelas"},
-  {id:"tpush", name:"Ext. Triceps",       nameEn:"Triceps Extension",pattern:"empuje",  muscle:"Triceps",            equip:"Polea"},
-  {id:"pu",    name:"Dominadas",          nameEn:"Pull-ups",         pattern:"traccion",muscle:"Dorsal/Biceps",      equip:"Barra fija"},
-  {id:"row",   name:"Remo Barra",         nameEn:"Barbell Row",      pattern:"traccion",muscle:"Dorsal",             equip:"Barra"},
-  {id:"crow",  name:"Remo Polea",         nameEn:"Cable Row",        pattern:"traccion",muscle:"Dorsal",             equip:"Polea"},
-  {id:"lat",   name:"Jalon al Pecho",     nameEn:"Lat Pulldown",     pattern:"traccion",muscle:"Dorsal/Biceps",      equip:"Maquina"},
-  {id:"facep", name:"Face Pull",          nameEn:"Face Pull",        pattern:"traccion",muscle:"Hombro Posterior",   equip:"Polea"},
-  {id:"curl",  name:"Curl Biceps",        nameEn:"Bicep Curl",       pattern:"traccion",muscle:"Biceps",             equip:"Mancuernas"},
-  {id:"plank", name:"Plancha",            nameEn:"Plank",            pattern:"core",    muscle:"Core",               equip:"Peso corporal"},
-  {id:"crunch",name:"Crunch",             nameEn:"Crunch",           pattern:"core",    muscle:"Abdominales",        equip:"Peso corporal"},
-  {id:"legr",  name:"Elev. Piernas",      nameEn:"Leg Raise",        pattern:"core",    muscle:"Core/Flexores",      equip:"Barra fija"},
-  {id:"mob1",  name:"Movilidad Cadera",   nameEn:"Hip Mobility",     pattern:"movil",   muscle:"Cadera",             equip:"Peso corporal"},
-  {id:"mob2",  name:"Movilidad Torax",    nameEn:"Thoracic Mobility",pattern:"movil",   muscle:"Columna",            equip:"Foam roller"},
-  {id:"suppu", name:"Dominadas Supinas",  nameEn:"Chin-ups",          pattern:"traccion",muscle:"Biceps/Dorsal",      equip:"Barra fija"},
-  {id:"hammer",name:"Biceps Martillo",    nameEn:"Hammer Curl",       pattern:"traccion",muscle:"Biceps/Braquial",    equip:"Mancuernas"},
-  {id:"legcurl",name:"Sillon Isquios",   nameEn:"Leg Curl Machine",  pattern:"pierna",  muscle:"Isquios",            equip:"Maquina"},
-  {id:"legext",name:"Sillon Cuadriceps", nameEn:"Leg Extension",     pattern:"pierna",  muscle:"Cuadriceps",         equip:"Maquina"},
-  {id:"trico", name:"Triceps Polea",     nameEn:"Triceps Pushdown",  pattern:"empuje",  muscle:"Triceps",            equip:"Polea"},
-  {id:"lateralfly",name:"Vuelos Laterales",nameEn:"Lateral Raises",  pattern:"empuje",  muscle:"Hombro Lateral",     equip:"Mancuernas"},
-  // ROTACION TORACICA
-  {id:"trot1",  name:"Rot. Torácica Suelo",   nameEn:"Thoracic Rotation Floor",  pattern:"movil", muscle:"Columna Torácica",  equip:"Peso corporal"},
-  {id:"trot2",  name:"Rot. Torácica Cuadrupedia", nameEn:"Quadruped T-Spine Rot.", pattern:"movil", muscle:"Columna Torácica",  equip:"Peso corporal"},
-  {id:"trot3",  name:"Rot. Torácica Foam",    nameEn:"Foam Roller T-Spine",       pattern:"movil", muscle:"Columna Torácica",  equip:"Foam roller"},
-  {id:"trot4",  name:"Rot. Torácica Banda",   nameEn:"Band Thoracic Rotation",    pattern:"movil", muscle:"Columna Torácica",  equip:"Banda"},
-  // MOVILIDAD CADERA
-  {id:"hipm1",  name:"90/90 Cadera",          nameEn:"90/90 Hip Stretch",         pattern:"movil", muscle:"Cadera/Glúteo",     equip:"Peso corporal"},
-  {id:"hipm2",  name:"Apertura Cadera Banda", nameEn:"Band Hip Opener",           pattern:"movil", muscle:"Cadera/Aductores",  equip:"Banda"},
-  {id:"hipm3",  name:"Estocada Movilidad",    nameEn:"Deep Lunge Mobility",       pattern:"movil", muscle:"Flexor Cadera",     equip:"Peso corporal"},
-  {id:"hipm4",  name:"Mariposa Dinámica",     nameEn:"Dynamic Butterfly",         pattern:"movil", muscle:"Aductores/Cadera",  equip:"Peso corporal"},
-  // MOVILIDAD HOMBROS
-  {id:"shom1",  name:"Rot. Hombro Banda",     nameEn:"Band Shoulder Rotation",    pattern:"movil", muscle:"Manguito Rotador",  equip:"Banda"},
-  {id:"shom2",  name:"Dislocaciones Banda",   nameEn:"Band Dislocations",         pattern:"movil", muscle:"Hombro/Dorsal",     equip:"Banda"},
-  {id:"shom3",  name:"Pass Through Palo",     nameEn:"Shoulder Pass Through",     pattern:"movil", muscle:"Hombro/Pecho",      equip:"Palo/Banda"},
-  {id:"shom4",  name:"Apertura Pecho Banda",  nameEn:"Band Chest Opener",         pattern:"movil", muscle:"Pecho/Hombro",      equip:"Banda"},
-  // MOVILIDAD TOBILLO
-  {id:"ankm1",  name:"Movilidad Tobillo Pared", nameEn:"Ankle Wall Mobility",     pattern:"movil", muscle:"Tobillo/Pantorrilla", equip:"Peso corporal"},
-  {id:"ankm2",  name:"Tobillo Banda",         nameEn:"Band Ankle Mobilization",   pattern:"movil", muscle:"Tobillo",           equip:"Banda"},
-  {id:"ankm3",  name:"Círculos Tobillo",      nameEn:"Ankle Circles",             pattern:"movil", muscle:"Tobillo",           equip:"Peso corporal"},
-  {id:"ankm4",  name:"Sentadilla Tobillo",    nameEn:"Ankle Squat Stretch",       pattern:"movil", muscle:"Tobillo/Pantorrilla", equip:"Peso corporal"},
-  // CORE ISOMETRICO
-  {id:"plank2", name:"Plancha Lateral",      nameEn:"Side Plank",              pattern:"core", muscle:"Oblicuos",           equip:"Peso corporal"},
-  {id:"plank3", name:"Plancha RKC",          nameEn:"RKC Plank",               pattern:"core", muscle:"Core completo",      equip:"Peso corporal"},
-  {id:"hollow", name:"Hollow Hold",          nameEn:"Hollow Hold",             pattern:"core", muscle:"Abdominales/Core",   equip:"Peso corporal"},
-  {id:"abwheel",name:"Rueda Abdominal",      nameEn:"Ab Wheel Rollout",        pattern:"core", muscle:"Core/Dorsal",        equip:"Rueda ab"},
-  {id:"renegade",name:"Remo Renegado",       nameEn:"Renegade Row",            pattern:"core", muscle:"Core/Dorsal/Triceps", equip:"Mancuernas"},
-  {id:"tgu",     name:"Levantada Turca",     nameEn:"Turkish Get-Up",          pattern:"core", muscle:"Core/Hombro/Cadera",  equip:"Kettlebell"},
-  {id:"remoren",name:"Remo Renegado",        nameEn:"Renegade Row",            pattern:"core", muscle:"Core/Dorsal/Biceps",  equip:"Mancuernas"},
-  {id:"tgu",    name:"TGU Levantada Turca",  nameEn:"Turkish Get-Up",          pattern:"core", muscle:"Core/Hombro/Cadera",  equip:"Kettlebell"},
-  {id:"deadbug", name:"Dead Bug",            nameEn:"Dead Bug",                pattern:"core", muscle:"Core/Estabilización",equip:"Peso corporal"},
-  {id:"pallof", name:"Pallof Press",         nameEn:"Pallof Press",            pattern:"core", muscle:"Anti-rotación Core", equip:"Banda/Polea"},
-  // CORE DINAMICO
-  {id:"mtnclmb",name:"Mountain Climber",     nameEn:"Mountain Climber",        pattern:"core", muscle:"Core/Cardio",        equip:"Peso corporal"},
-  {id:"vup",    name:"V-Up",                 nameEn:"V-Up",                    pattern:"core", muscle:"Abdominales",        equip:"Peso corporal"},
-  {id:"russtwist",name:"Russian Twist",      nameEn:"Russian Twist",           pattern:"core", muscle:"Oblicuos",           equip:"Disco/Mancuerna"},
-  {id:"situp",  name:"Sit-Up",              nameEn:"Sit-Up",                   pattern:"core", muscle:"Abdominales",        equip:"Peso corporal"},
-  {id:"tobar",  name:"Toes to Bar",          nameEn:"Toes to Bar",             pattern:"core", muscle:"Core/Flexores",      equip:"Barra fija"},
-  {id:"woodchop",name:"Hacha con Banda",     nameEn:"Band Woodchop",           pattern:"core", muscle:"Oblicuos/Core",      equip:"Banda/Polea"},
-  {id:"dragoncurl",name:"Dragon Flag",       nameEn:"Dragon Flag",             pattern:"core", muscle:"Core completo",      equip:"Banco"},
-  {id:"bgoodmorn",name:"Buenos Dias Banda",  nameEn:"Band Good Morning",       pattern:"core", muscle:"Lumbar/Core",        equip:"Banda"},
-  // BICEPS
-  {id:"curlconc",  name:"Curl Concentrado",  nameEn:"Concentration Curl",   pattern:"traccion", muscle:"Bíceps",           equip:"Mancuerna"},
-  {id:"curlpolea", name:"Curl en Polea",      nameEn:"Cable Curl",           pattern:"traccion", muscle:"Bíceps",           equip:"Polea"},
-  {id:"curlw",     name:"Curl Barra W",       nameEn:"EZ Bar Curl",          pattern:"traccion", muscle:"Bíceps/Braquial",  equip:"Barra W"},
-  // TRICEPS
-  {id:"kickback",  name:"Patada de Burro",    nameEn:"Triceps Kickback",     pattern:"empuje",   muscle:"Tríceps",          equip:"Mancuerna"},
-  // HOMBROS
-  {id:"rearfly",   name:"Vuelos Post. Banco", nameEn:"Rear Delt Fly Bench",  pattern:"traccion", muscle:"Hombro Posterior", equip:"Mancuernas"},
-  // ESPALDA
-  {id:"pendlay",   name:"Remo Pendlay",       nameEn:"Pendlay Row",          pattern:"traccion", muscle:"Dorsal/Trapecio",  equip:"Barra"},
-  {id:"serrucho",  name:"Remo Serrucho",      nameEn:"One Arm DB Row",       pattern:"traccion", muscle:"Dorsal",           equip:"Mancuerna"},
-  {id:"remoalto",  name:"Remo Alto Polea",    nameEn:"Cable High Row",       pattern:"traccion", muscle:"Dorsal/Bíceps",    equip:"Polea"},
-  // HOMBROS adicionales
-  {id:"frontfly",  name:"Vuelos Frontales",      nameEn:"Front Raise",             pattern:"empuje",   muscle:"Hombro Anterior",  equip:"Mancuernas"},
-  {id:"pushunil",  name:"Press Unilat. Arrod.",  nameEn:"Kneeling 1-Arm Press",    pattern:"empuje",   muscle:"Hombro/Core",       equip:"Mancuerna"},
-  {id:"pressunil", name:"Press Unilat. De Pie",  nameEn:"Standing 1-Arm Press",    pattern:"empuje",   muscle:"Hombro/Core",       equip:"Mancuerna"},
-  {id:"pushpress", name:"Push Press",             nameEn:"Push Press",              pattern:"empuje",   muscle:"Hombro/Piernas",    equip:"Barra"},
-  // PIERNAS adicionales
-  {id:"stepup",    name:"Step Up",                nameEn:"Step Up",                 pattern:"pierna",   muscle:"Cuadriceps/Glúteo", equip:"Banco/Mancuernas"},
-  {id:"lstepup",   name:"Lateral Step Up",        nameEn:"Lateral Step Up",         pattern:"pierna",   muscle:"Glúteo/Abductores", equip:"Banco"},
-  // CORE adicionales
-  {id:"espinales", name:"Espinales",              nameEn:"Back Extensions",         pattern:"core",     muscle:"Lumbar",            equip:"Banco romano"},
-  {id:"revolcase", name:"Revolver la Olla",       nameEn:"Stir the Pot",            pattern:"core",     muscle:"Core completo",     equip:"Fitball"},
-  {id:"pallofkn",  name:"Pallof Press Arrod.",    nameEn:"Kneeling Pallof Press",   pattern:"core",     muscle:"Anti-rot. Core",    equip:"Banda/Polea"},
-  {id:"rollout",   name:"Roll Out Fitball",       nameEn:"Fitball Rollout",         pattern:"core",     muscle:"Core/Dorsal",       equip:"Fitball"},
-  {id:"deadbugd",  name:"Dead Bug con Disco",     nameEn:"Dead Bug with Plate",     pattern:"core",     muscle:"Core/Estabilización",equip:"Disco"},
-  // ESPALDA adicionales
-  {id:"pullover",  name:"Pull Over Polea",        nameEn:"Cable Pullover",          pattern:"traccion", muscle:"Dorsal/Pecho",      equip:"Polea"},
-  // PIERNAS/GLÚTEO adicionales
-  {id:"deadasim",  name:"PM Asimétrico",         nameEn:"Asymmetric Deadlift",     pattern:"pierna",   muscle:"Isquios/Glúteo/Core", equip:"Mancuerna/Disco"},
-  {id:"deadunil",  name:"PM Una Pierna",          nameEn:"Single Leg Deadlift",     pattern:"pierna",   muscle:"Isquios/Glúteo",      equip:"Mancuerna/Barra"},
-  {id:"kbswing",   name:"KB Swing",               nameEn:"Kettlebell Swing",        pattern:"pierna",   muscle:"Glúteo/Isquios/Core", equip:"Kettlebell"},
-  {id:"glutepolea",name:"Patada Glúteo Polea",    nameEn:"Cable Glute Kickback",    pattern:"pierna",   muscle:"Glúteo",              equip:"Polea"},
-  {id:"abduccion", name:"Abducción Máquina",      nameEn:"Hip Abduction Machine",   pattern:"pierna",   muscle:"Abductores/Glúteo",   equip:"Máquina"},
-  {id:"aduccion",  name:"Aducción Máquina",       nameEn:"Hip Adduction Machine",   pattern:"pierna",   muscle:"Aductores",           equip:"Máquina"},
-  {id:"nordicos",  name:"Nórdicos",               nameEn:"Nordic Curls",            pattern:"pierna",   muscle:"Isquios",             equip:"Banco/Pareja"},
-  // FUNCIONALES
-  {id:"farmerw",   name:"Caminata del Granjero",  nameEn:"Farmer's Walk",           pattern:"core",     muscle:"Core/Trapecios/Grip", equip:"Mancuernas/Discos"},
-  {id:"farmerwu",  name:"Granjero Unilateral",    nameEn:"Suitcase Carry",          pattern:"core",     muscle:"Core Anti-lat./Grip", equip:"Mancuerna/Disco"},
-  {id:"trxrow",    name:"Remo en TRX",            nameEn:"TRX Row",                 pattern:"traccion", muscle:"Dorsal/Bíceps/Core",  equip:"TRX"},
-  {id:"bulgsq",   name:"Sentadilla Búlgara",   nameEn:"Bulgarian Split Squat",  pattern:"pierna",  muscle:"Cuadriceps/Glúteo",  equip:"Mancuernas/Barra"},
-  {id:"cablefly", name:"Cruces Polea Alta",     nameEn:"Cable Crossover High",   pattern:"empuje",  muscle:"Pecho",              equip:"Polea"},
-  // OLÍMPICOS
-  {id:"clean",    name:"Clean",              nameEn:"Power Clean",         pattern:"oly", muscle:"Full Body/Explosivo",  equip:"Barra"},
-  {id:"snatch",   name:"Arrancada",           nameEn:"Snatch",              pattern:"oly", muscle:"Full Body/Explosivo",  equip:"Barra"},
-  {id:"cleanjerk",name:"Envión",              nameEn:"Clean & Jerk",        pattern:"oly", muscle:"Full Body/Explosivo",  equip:"Barra"},
-  {id:"hangclean",name:"Colgante Clean",      nameEn:"Hang Clean",          pattern:"oly", muscle:"Isquios/Trap/Hombro",  equip:"Barra"},
-  {id:"pushpress2",name:"Push Jerk",          nameEn:"Push Jerk",           pattern:"oly", muscle:"Hombro/Tríceps/Pierna",equip:"Barra"},
-  {id:"cleanpull",name:"Tirón de Clean",      nameEn:"Clean Pull",          pattern:"oly", muscle:"Espalda/Isquios/Trap", equip:"Barra"},
-  // CARDIO
-  {id:"soga",     name:"Saltar la Soga",    nameEn:"Jump Rope",           pattern:"cardio", muscle:"Cardiovascular/Pantorrillas", equip:"Soga"},
-  {id:"bici",     name:"Bicicleta",         nameEn:"Stationary Bike",     pattern:"cardio", muscle:"Cardiovascular/Piernas",      equip:"Bicicleta"},
-  {id:"cinta",    name:"Cinta",             nameEn:"Treadmill Walk",      pattern:"cardio", muscle:"Cardiovascular",              equip:"Cinta"},
-  {id:"trote",    name:"Trote en Cinta",    nameEn:"Treadmill Run",       pattern:"cardio", muscle:"Cardiovascular/Piernas",      equip:"Cinta"},
-  {id:"eliptico", name:"Eliptico",          nameEn:"Elliptical",          pattern:"cardio", muscle:"Cardiovascular/Cuerpo completo", equip:"Eliptico"},
-  // RODILLA DOMINANTE (nuevos IDs)
-  {id:"bulgsplit",name:"Bulgarian Split Squat", nameEn:"Bulgarian Split Squat", pattern:"rodilla", muscle:"Cuadriceps/Gluteo", equip:"Mancuernas/Barra"},
+  // ── CUADRICEPS ──────────────────────────────────────────────────────
+  {id:"sq",     name:"Sentadilla con barra",           nameEn:"Barbell Squat",              pattern:"rodilla", muscle:"Cuadriceps",              equip:"Barra",       youtube:"https://www.youtube.com/watch?v=bEv6CCg2BC8"},
+  {id:"gcsq",   name:"Sentadilla de copa",             nameEn:"Goblet Squat",               pattern:"rodilla", muscle:"Cuadriceps",              equip:"Kettlebell",  youtube:"https://www.youtube.com/watch?v=MxsFDhcyFyE"},
+  {id:"bsq",    name:"Sentadilla bulgara",             nameEn:"Bulgarian Split Squat",      pattern:"rodilla", muscle:"Cuadriceps",              equip:"Mancuernas",  youtube:"https://www.youtube.com/watch?v=2C-uNgKwPLE"},
+  {id:"sumoq",  name:"Sentadilla sumo",                nameEn:"Sumo Squat",                 pattern:"rodilla", muscle:"Cuadriceps/Gluteos",      equip:"Barra",       youtube:"https://www.youtube.com/watch?v=U3HlEF_E9fo"},
+  {id:"jsq",    name:"Sentadillas con salto",          nameEn:"Jump Squat",                 pattern:"rodilla", muscle:"Cuadriceps",              equip:"Libre",       youtube:"https://www.youtube.com/watch?v=YGGq0AE5Uyc"},
+  {id:"lunge",  name:"Estocadas",                      nameEn:"Lunges",                     pattern:"rodilla", muscle:"Cuadriceps",              equip:"Libre",       youtube:"https://www.youtube.com/watch?v=QOVaHwm-Q6U"},
+  {id:"rlunge", name:"Estocadas hacia atras",          nameEn:"Reverse Lunges",             pattern:"rodilla", muscle:"Cuadriceps",              equip:"Libre",       youtube:"https://www.youtube.com/watch?v=xrPteyQLGAo"},
+  {id:"llunge", name:"Estocadas laterales",            nameEn:"Lateral Lunges",             pattern:"rodilla", muscle:"Cuadriceps/Abductores",   equip:"Libre",       youtube:"https://www.youtube.com/watch?v=gwWv7aPcD88"},
+  {id:"boxup",  name:"Subidas al cajon",               nameEn:"Box Step Up",                pattern:"rodilla", muscle:"Cuadriceps",              equip:"Cajon",       youtube:"https://www.youtube.com/watch?v=dQqApCGd5Ss"},
+  {id:"lboxup", name:"Subidas laterales al cajon",     nameEn:"Lateral Box Step Up",        pattern:"rodilla", muscle:"Cuadriceps/Gluteos",      equip:"Cajon",       youtube:"https://www.youtube.com/watch?v=JeB_wGPMqG0"},
+  {id:"pistol", name:"Pistols",                        nameEn:"Pistol Squat",               pattern:"rodilla", muscle:"Cuadriceps",              equip:"Libre",       youtube:"https://www.youtube.com/watch?v=vq5-vdgJc0I"},
+  {id:"skater", name:"Sentadilla skater",              nameEn:"Skater Squat",               pattern:"rodilla", muscle:"Cuadriceps",              equip:"Libre",       youtube:"https://www.youtube.com/watch?v=d4HQh5RwXoY"},
+  {id:"legext", name:"Sillon de cuadriceps",           nameEn:"Leg Extension",              pattern:"rodilla", muscle:"Cuadriceps",              equip:"Maquina",     youtube:"https://www.youtube.com/watch?v=YyvSfVjQeL0"},
+  {id:"legext1",name:"Sillon de cuadriceps 1 pierna",  nameEn:"Single Leg Extension",       pattern:"rodilla", muscle:"Cuadriceps",              equip:"Maquina",     youtube:"https://www.youtube.com/watch?v=YyvSfVjQeL0"},
+  {id:"lp",     name:"Prensa piernas",                 nameEn:"Leg Press",                  pattern:"rodilla", muscle:"Cuadriceps/Gluteos",      equip:"Maquina",     youtube:"https://www.youtube.com/watch?v=IZxyjW7MPJQ"},
+  // ── ISQUIOS / GLUTEOS ────────────────────────────────────────────────
+  {id:"dl",     name:"Peso muerto",                    nameEn:"Deadlift",                   pattern:"bisagra", muscle:"Isquios/Gluteos",         equip:"Barra",       youtube:"https://www.youtube.com/watch?v=op9kVnSso6Q"},
+  {id:"rdl",    name:"Peso muerto rumano",             nameEn:"Romanian Deadlift",          pattern:"bisagra", muscle:"Isquios/Gluteos",         equip:"Barra",       youtube:"https://www.youtube.com/watch?v=JCXUYuzwNrM"},
+  {id:"sldl",   name:"Peso muerto 1 pierna",           nameEn:"Single Leg Deadlift",        pattern:"bisagra", muscle:"Isquios/Gluteos",         equip:"Mancuerna",   youtube:"https://www.youtube.com/watch?v=FIEkFESFOkQ"},
+  {id:"sumodl", name:"Peso muerto sumo",               nameEn:"Sumo Deadlift",              pattern:"bisagra", muscle:"Isquios/Gluteos/Abduct",  equip:"Barra",       youtube:"https://www.youtube.com/watch?v=WBPvQMBePGs"},
+  {id:"hip",    name:"Hip thrust",                     nameEn:"Hip Thrust",                 pattern:"bisagra", muscle:"Gluteos",                 equip:"Barra",       youtube:"https://www.youtube.com/watch?v=xDmFkJxPzeM"},
+  {id:"hip1",   name:"Hip thrust a una pierna",        nameEn:"Single Leg Hip Thrust",      pattern:"bisagra", muscle:"Gluteos",                 equip:"Barra",       youtube:"https://www.youtube.com/watch?v=pq6WHjzOkl8"},
+  {id:"kbswing",name:"Swing con KB",                   nameEn:"Kettlebell Swing",           pattern:"bisagra", muscle:"Gluteos/Isquios",         equip:"Kettlebell",  youtube:"https://www.youtube.com/watch?v=YSxHifyI6s8"},
+  {id:"nordic", name:"Nordicos",                       nameEn:"Nordic Curl",                pattern:"bisagra", muscle:"Isquios",                 equip:"Libre",       youtube:"https://www.youtube.com/watch?v=d8AAPMBqWFk"},
+  {id:"bridge", name:"Puente de gluteos",              nameEn:"Glute Bridge",               pattern:"bisagra", muscle:"Gluteos",                 equip:"Libre",       youtube:"https://www.youtube.com/watch?v=OUgsJ8-Vi0E"},
+  {id:"bridge1",name:"Puente de gluteos 1 pierna",     nameEn:"Single Leg Glute Bridge",    pattern:"bisagra", muscle:"Gluteos",                 equip:"Libre",       youtube:"https://www.youtube.com/watch?v=qMKYfZOCNeg"},
+  {id:"fbcurl", name:"Curl femoral con fitball",       nameEn:"Fitball Leg Curl",           pattern:"bisagra", muscle:"Isquios",                 equip:"Fitball",     youtube:"https://www.youtube.com/watch?v=Xy97Q3bB3xc"},
+  {id:"seathc", name:"Femorales sentado",              nameEn:"Seated Leg Curl",            pattern:"bisagra", muscle:"Isquios",                 equip:"Maquina",     youtube:"https://www.youtube.com/watch?v=1Tq3QdYUuHs"},
+  {id:"lc",     name:"Camilla de isquios",             nameEn:"Lying Leg Curl",             pattern:"bisagra", muscle:"Isquios",                 equip:"Maquina",     youtube:"https://www.youtube.com/watch?v=ELOCsoDSmrg"},
+  {id:"calf",   name:"Pantorrillas",                   nameEn:"Calf Raise",                 pattern:"bisagra", muscle:"Gemelos",                 equip:"Maquina",     youtube:"https://www.youtube.com/watch?v=-M4-G8p1fCI"},
+  // ── EMPUJE ───────────────────────────────────────────────────────────
+  {id:"bp",     name:"Press de banca",                 nameEn:"Bench Press",                pattern:"empuje",  muscle:"Pecho",                   equip:"Barra",       youtube:"https://www.youtube.com/watch?v=SCVCLChPQFY"},
+  {id:"dbp",    name:"Press de banca con mancuernas",  nameEn:"Dumbbell Bench Press",       pattern:"empuje",  muscle:"Pecho",                   equip:"Mancuernas",  youtube:"https://www.youtube.com/watch?v=QsYre__-aro"},
+  {id:"dbp1",   name:"Press de banca mancuerna 1 brazo",nameEn:"Single Arm DB Bench Press", pattern:"empuje",  muscle:"Pecho",                   equip:"Mancuerna",   youtube:"https://www.youtube.com/watch?v=1rHZQPOJMz4"},
+  {id:"ibp",    name:"Press inclinado con barra",      nameEn:"Incline Barbell Press",      pattern:"empuje",  muscle:"Pecho alto",              equip:"Barra",       youtube:"https://www.youtube.com/watch?v=DbFgADa2PL8"},
+  {id:"idbp",   name:"Press inclinado con mancuernas", nameEn:"Incline Dumbbell Press",     pattern:"empuje",  muscle:"Pecho alto",              equip:"Mancuernas",  youtube:"https://www.youtube.com/watch?v=8iPEnn-ltC8"},
+  {id:"ohp",    name:"Press de hombros con barra",     nameEn:"Barbell Overhead Press",     pattern:"empuje",  muscle:"Hombro",                  equip:"Barra",       youtube:"https://www.youtube.com/watch?v=2yjwXTZQDDI"},
+  {id:"arnold", name:"Press Arnold",                   nameEn:"Arnold Press",               pattern:"empuje",  muscle:"Hombro",                  equip:"Mancuernas",  youtube:"https://www.youtube.com/watch?v=6Z15_WdXmVw"},
+  {id:"mohpm",  name:"Press de hombros en maquina",    nameEn:"Machine Shoulder Press",     pattern:"empuje",  muscle:"Hombro",                  equip:"Maquina",     youtube:"https://www.youtube.com/watch?v=Wqq43dKW1TU"},
+  {id:"uohp",   name:"Press hombros unilateral",       nameEn:"Unilateral Shoulder Press",  pattern:"empuje",  muscle:"Hombro",                  equip:"Mancuerna",   youtube:"https://www.youtube.com/watch?v=UMSIITSREt0"},
+  {id:"kuohp",  name:"Press hombros unilateral arrodillado",nameEn:"Half Kneeling Press",   pattern:"empuje",  muscle:"Hombro/Core",             equip:"Mancuerna",   youtube:"https://www.youtube.com/watch?v=cKJq3dNNIr4"},
+  {id:"land",   name:"Press landmine",                 nameEn:"Landmine Press",             pattern:"empuje",  muscle:"Hombro/Pecho",            equip:"Barra",       youtube:"https://www.youtube.com/watch?v=cayxFfn9SkU"},
+  {id:"late",   name:"Vuelos laterales",               nameEn:"Lateral Raise",              pattern:"empuje",  muscle:"Hombro lateral",          equip:"Mancuernas",  youtube:"https://www.youtube.com/watch?v=3VcKaXpzqRo"},
+  {id:"ffr",    name:"Vuelos frontales",               nameEn:"Front Raise",                pattern:"empuje",  muscle:"Hombro frontal",          equip:"Mancuernas",  youtube:"https://www.youtube.com/watch?v=sON2s2l-Tks"},
+  {id:"tric",   name:"Triceps en polea con soga",      nameEn:"Triceps Rope Pushdown",      pattern:"empuje",  muscle:"Triceps",                 equip:"Polea",       youtube:"https://www.youtube.com/watch?v=vB5OHsJ3EME"},
+  {id:"tric2",  name:"Triceps tras nuca en polea",     nameEn:"Overhead Triceps Extension", pattern:"empuje",  muscle:"Triceps",                 equip:"Polea",       youtube:"https://www.youtube.com/watch?v=_gsUck-7M74"},
+  {id:"tric3",  name:"Patada de burro en polea",       nameEn:"Cable Kickback",             pattern:"empuje",  muscle:"Triceps",                 equip:"Polea",       youtube:"https://www.youtube.com/watch?v=l3WwE4K2TCA"},
+  {id:"tric4",  name:"Triceps tras nuca con soga",     nameEn:"Rope Overhead Extension",    pattern:"empuje",  muscle:"Triceps",                 equip:"Polea",       youtube:"https://www.youtube.com/watch?v=_gsUck-7M74"},
+  {id:"tric5",  name:"Triceps frances con mancuernas", nameEn:"French Press",               pattern:"empuje",  muscle:"Triceps",                 equip:"Mancuernas",  youtube:"https://www.youtube.com/watch?v=ir5PsbniVSc"},
+  {id:"bankdip",name:"Fondos en banco",                nameEn:"Bench Dip",                  pattern:"empuje",  muscle:"Triceps/Pecho",           equip:"Banco",       youtube:"https://www.youtube.com/watch?v=c3ZGl4pAwZ4"},
+  {id:"dip",    name:"Fondos en paralelas",            nameEn:"Parallel Bar Dip",           pattern:"empuje",  muscle:"Pecho/Triceps",           equip:"Paralelas",   youtube:"https://www.youtube.com/watch?v=2z8JmcrW-As"},
+  {id:"pushup", name:"Push up",                        nameEn:"Push Up",                    pattern:"empuje",  muscle:"Pecho/Triceps",           equip:"Libre",       youtube:"https://www.youtube.com/watch?v=IODxDxX7oi4"},
+  // ── TRACCION ─────────────────────────────────────────────────────────
+  {id:"row",    name:"Remo con barra",                 nameEn:"Barbell Row",                pattern:"traccion",muscle:"Espalda",                 equip:"Barra",       youtube:"https://www.youtube.com/watch?v=FWJR5Ve8bnQ"},
+  {id:"prow",   name:"Remo pendlay",                   nameEn:"Pendlay Row",                pattern:"traccion",muscle:"Espalda",                 equip:"Barra",       youtube:"https://www.youtube.com/watch?v=RA0Ly0eAaok"},
+  {id:"irow",   name:"Remo en banco inclinado",        nameEn:"Incline Dumbbell Row",       pattern:"traccion",muscle:"Espalda",                 equip:"Mancuernas",  youtube:"https://www.youtube.com/watch?v=uiizbEDPFPU"},
+  {id:"dbrow",  name:"Remo serrucho",                  nameEn:"Single Arm Dumbbell Row",    pattern:"traccion",muscle:"Espalda",                 equip:"Mancuerna",   youtube:"https://www.youtube.com/watch?v=pYcpY20QaE8"},
+  {id:"ringrow",name:"Remo en anillas",                nameEn:"Ring Row",                   pattern:"traccion",muscle:"Espalda",                 equip:"Anillas",     youtube:"https://www.youtube.com/watch?v=LDzSk9MNEo4"},
+  {id:"cabrow", name:"Remo bajo en maquina",           nameEn:"Seated Cable Row",           pattern:"traccion",muscle:"Espalda",                 equip:"Maquina",     youtube:"https://www.youtube.com/watch?v=GZbfZ033f74"},
+  {id:"uprow",  name:"Remo alto en dorsalera",         nameEn:"High Cable Row",             pattern:"traccion",muscle:"Espalda alta",            equip:"Polea",       youtube:"https://www.youtube.com/watch?v=HKSsG2lhLas"},
+  {id:"lat",    name:"Jalon al pecho prono",           nameEn:"Lat Pulldown",               pattern:"traccion",muscle:"Dorsal",                  equip:"Polea",       youtube:"https://www.youtube.com/watch?v=CAwf7n6Luuc"},
+  {id:"lats",   name:"Jalon al pecho supino",          nameEn:"Supinated Lat Pulldown",     pattern:"traccion",muscle:"Dorsal",                  equip:"Polea",       youtube:"https://www.youtube.com/watch?v=lueE_MBAhHo"},
+  {id:"pu",     name:"Dominadas pronas",               nameEn:"Pull Up",                    pattern:"traccion",muscle:"Dorsal",                  equip:"Barra",       youtube:"https://www.youtube.com/watch?v=eGo4IYlbE5g"},
+  {id:"pusu",   name:"Dominadas supinas",              nameEn:"Chin Up",                    pattern:"traccion",muscle:"Dorsal/Biceps",           equip:"Barra",       youtube:"https://www.youtube.com/watch?v=a5-tWfJDUQo"},
+  {id:"punu",   name:"Dominadas neutras",              nameEn:"Neutral Grip Pull Up",       pattern:"traccion",muscle:"Dorsal",                  equip:"Barra",       youtube:"https://www.youtube.com/watch?v=rB-KMkRXN4E"},
+  {id:"hammer", name:"Remo hammer",                    nameEn:"Hammer Row",                 pattern:"traccion",muscle:"Dorsal/Biceps",           equip:"Mancuernas",  youtube:"https://www.youtube.com/watch?v=vVnXRJLFKyQ"},
+  {id:"uproww", name:"Remo al menton con barra W",     nameEn:"Upright Row",                pattern:"traccion",muscle:"Trapecio/Hombro",         equip:"Barra W",     youtube:"https://www.youtube.com/watch?v=Hceg1MfOiJ0"},
+  {id:"vertm",  name:"Maquina traccion vertical",      nameEn:"Vertical Traction Machine",  pattern:"traccion",muscle:"Dorsal",                  equip:"Maquina",     youtube:"https://www.youtube.com/watch?v=CAwf7n6Luuc"},
+  {id:"pullover",name:"Pull over en polea",            nameEn:"Cable Pullover",             pattern:"traccion",muscle:"Dorsal",                  equip:"Polea",       youtube:"https://www.youtube.com/watch?v=s9SQSGkHiBI"},
+  {id:"revfly", name:"Vuelos posteriores sentado",     nameEn:"Reverse Fly",                pattern:"traccion",muscle:"Hombro posterior",        equip:"Mancuernas",  youtube:"https://www.youtube.com/watch?v=TXYnAEDiOX4"},
+  {id:"urow",   name:"Remo en polea unilateral",       nameEn:"Single Arm Cable Row",       pattern:"traccion",muscle:"Espalda",                 equip:"Polea",       youtube:"https://www.youtube.com/watch?v=YxJHBaGsXKI"},
+  {id:"curl",   name:"Curl de biceps",                 nameEn:"Bicep Curl",                 pattern:"traccion",muscle:"Biceps",                  equip:"Mancuernas",  youtube:"https://www.youtube.com/watch?v=ykJmrZ5v0Oo"},
+  {id:"bcurl",  name:"Curl de biceps con barra W",     nameEn:"EZ Bar Curl",                pattern:"traccion",muscle:"Biceps",                  equip:"Barra W",     youtube:"https://www.youtube.com/watch?v=5OtWwT_EWQU"},
+  {id:"hcurl",  name:"Biceps martillo",                nameEn:"Hammer Curl",                pattern:"traccion",muscle:"Biceps/Braquial",         equip:"Mancuernas",  youtube:"https://www.youtube.com/watch?v=zC3nLlEvin4"},
+  {id:"ccurl",  name:"Biceps concentrado",             nameEn:"Concentration Curl",         pattern:"traccion",muscle:"Biceps",                  equip:"Mancuerna",   youtube:"https://www.youtube.com/watch?v=Jvj2wV0vOFU"},
+  {id:"pcurl",  name:"Biceps en polea",                nameEn:"Cable Curl",                 pattern:"traccion",muscle:"Biceps",                  equip:"Polea",       youtube:"https://www.youtube.com/watch?v=V8dZ3pyiCBo"},
+  // ── CORE ─────────────────────────────────────────────────────────────
+  {id:"plank",  name:"Plancha",                        nameEn:"Plank",                      pattern:"core",    muscle:"Core",                    equip:"Libre",       youtube:"https://www.youtube.com/watch?v=pSHjTRCQxIw"},
+  {id:"plankl", name:"Plancha lateral",                nameEn:"Side Plank",                 pattern:"core",    muscle:"Core/Oblicuos",           equip:"Libre",       youtube:"https://www.youtube.com/watch?v=K2VljzCC16g"},
+  {id:"ab",     name:"Abdominales",                    nameEn:"Crunches",                   pattern:"core",    muscle:"Core",                    equip:"Libre",       youtube:"https://www.youtube.com/watch?v=Xyd_fa5zoEU"},
+  {id:"crunch", name:"Crunch en polea",                nameEn:"Cable Crunch",               pattern:"core",    muscle:"Core",                    equip:"Polea",       youtube:"https://www.youtube.com/watch?v=TSHCc2jJRgQ"},
+  {id:"drgflag",name:"Dragon flag",                    nameEn:"Dragon Flag",                pattern:"core",    muscle:"Core",                    equip:"Banco",       youtube:"https://www.youtube.com/watch?v=pvz7k5gO-DE"},
+  {id:"hollow", name:"Hollow body",                    nameEn:"Hollow Body Hold",           pattern:"core",    muscle:"Core",                    equip:"Libre",       youtube:"https://www.youtube.com/watch?v=LlDNef_Ztsc"},
+  {id:"pallof", name:"Pallof press",                   nameEn:"Pallof Press",               pattern:"core",    muscle:"Core/Oblicuos",           equip:"Polea",       youtube:"https://www.youtube.com/watch?v=AH_QZLm_0-s"},
+  {id:"lgrlwk", name:"Farmer walk",                    nameEn:"Farmer Walk",                pattern:"core",    muscle:"Core/Trapecio",           equip:"Mancuernas",  youtube:"https://www.youtube.com/watch?v=Fkzk_RqlYig"},
+  {id:"abwheel",name:"Rueda abdominal",                nameEn:"Ab Wheel Rollout",           pattern:"core",    muscle:"Core",                    equip:"Rueda",       youtube:"https://www.youtube.com/watch?v=jhD4Udjk37Y"},
+  // ── MOVILIDAD ────────────────────────────────────────────────────────
+  {id:"hipflex",name:"Flexibilidad de cadera",         nameEn:"Hip Flexor Stretch",         pattern:"movilidad",muscle:"Cadera",                 equip:"Libre",       youtube:"https://www.youtube.com/watch?v=gRNQDXe0NKY"},
+  {id:"t90",    name:"T90",                            nameEn:"90/90 Hip Stretch",          pattern:"movilidad",muscle:"Cadera",                 equip:"Libre",       youtube:"https://www.youtube.com/watch?v=SnMvFQiKOT0"},
+  {id:"pigdov", name:"Paloma",                         nameEn:"Pigeon Pose",                pattern:"movilidad",muscle:"Gluteo/Cadera",          equip:"Libre",       youtube:"https://www.youtube.com/watch?v=24Ej7YmBWBQ"},
+  {id:"thspin", name:"Rotacion toracica",              nameEn:"Thoracic Rotation",          pattern:"movilidad",muscle:"Columna",                equip:"Libre",       youtube:"https://www.youtube.com/watch?v=GnHVcVMFoLQ"},
+  {id:"catrec", name:"Cat camel",                      nameEn:"Cat Camel",                  pattern:"movilidad",muscle:"Columna",                equip:"Libre",       youtube:"https://www.youtube.com/watch?v=kqnua4rHVVA"},
+  {id:"shcir",  name:"Circunducciones de hombro",      nameEn:"Shoulder Circles",           pattern:"movilidad",muscle:"Hombro",                 equip:"Libre",       youtube:"https://www.youtube.com/watch?v=4_DGiGb7XoM"},
+  {id:"ankmob", name:"Movilidad de tobillo",           nameEn:"Ankle Mobility",             pattern:"movilidad",muscle:"Tobillo",                equip:"Libre",       youtube:"https://www.youtube.com/watch?v=idDnIQFHE7s"},
+  {id:"wrstretch",name:"Estiramiento de muneca",       nameEn:"Wrist Stretch",              pattern:"movilidad",muscle:"Muneca",                 equip:"Libre",       youtube:"https://www.youtube.com/watch?v=mSZWSQSSEjE"},
+  // ── CARDIO ───────────────────────────────────────────────────────────
+  {id:"run",    name:"Trote",                          nameEn:"Jog",                        pattern:"cardio",  muscle:"General",                 equip:"Libre",       youtube:"https://www.youtube.com/watch?v=_kGESn8ArrU"},
+  {id:"bike",   name:"Bicicleta",                      nameEn:"Cycling",                    pattern:"cardio",  muscle:"General",                 equip:"Bicicleta",   youtube:"https://www.youtube.com/watch?v=5yjr7tbpOVQ"},
+  {id:"row_c",  name:"Remo ergometro",                 nameEn:"Rowing Machine",             pattern:"cardio",  muscle:"General",                 equip:"Remo",        youtube:"https://www.youtube.com/watch?v=H0r_Ql5F4lk"},
+  {id:"skip",   name:"Skipping",                       nameEn:"High Knees",                 pattern:"cardio",  muscle:"General",                 equip:"Libre",       youtube:"https://www.youtube.com/watch?v=8opcQdC-V-U"},
+  {id:"burpee", name:"Burpees",                        nameEn:"Burpees",                    pattern:"cardio",  muscle:"General",                 equip:"Libre",       youtube:"https://www.youtube.com/watch?v=auBLPXO8Fww"},
+  {id:"jump",   name:"Saltos",                         nameEn:"Box Jumps",                  pattern:"cardio",  muscle:"General",                 equip:"Libre",       youtube:"https://www.youtube.com/watch?v=NBY9-kTuHEk"},
+  {id:"rope",   name:"Soga",                           nameEn:"Jump Rope",                  pattern:"cardio",  muscle:"General",                 equip:"Soga",        youtube:"https://www.youtube.com/watch?v=FJmRQ5iTXKE"},
+  // ── OLIMPICOS ────────────────────────────────────────────────────────
+  {id:"snatch", name:"Arranque",                       nameEn:"Snatch",                     pattern:"oly",     muscle:"Cuerpo completo",         equip:"Barra",       youtube:"https://www.youtube.com/watch?v=9xQp2sldyts"},
+  {id:"hsnatch",name:"Arranque de colgado",            nameEn:"Hang Snatch",                pattern:"oly",     muscle:"Cuerpo completo",         equip:"Barra",       youtube:"https://www.youtube.com/watch?v=6QKMrArRa7s"},
+  {id:"clean",  name:"Cargada",                        nameEn:"Power Clean",                pattern:"oly",     muscle:"Cuerpo completo",         equip:"Barra",       youtube:"https://www.youtube.com/watch?v=KjGvwQl8tis"},
+  {id:"cjerk",  name:"Cargada y envion",               nameEn:"Clean and Jerk",             pattern:"oly",     muscle:"Cuerpo completo",         equip:"Barra",       youtube:"https://www.youtube.com/watch?v=6IYzFwHDEik"},
+  {id:"ppres",  name:"Push press",                     nameEn:"Push Press",                 pattern:"oly",     muscle:"Hombro/Triceps",          equip:"Barra",       youtube:"https://www.youtube.com/watch?v=X6-DMh-t4nQ"},
 ];
 
 const VIDEOS = {
@@ -340,7 +324,7 @@ function GymApp() {
   const [loginLoading, setLoginLoading] = useState(false);
   const [webAuthnAvail] = useState(()=> typeof window!=="undefined" && !!window.PublicKeyCredential);
   const [savedCredential] = useState(()=>{ try{return localStorage.getItem("it_biometric_cred")}catch(e){return null} });
-  const [lang, setLang] = useState("es");
+  const [lang, setLang] = useState(()=>{try{return localStorage.getItem("it_lang")||"es"}catch(e){return "es"}});
   const [darkMode, setDarkMode] = useState(()=>{ try{return localStorage.getItem("it_dark")!=="false"}catch(e){return true} });
   const es = lang==="es";
   const [routines, setRoutines] = useState(() => { try{return JSON.parse(localStorage.getItem("it_rt")||"[]")}catch(e){return []} });
@@ -360,13 +344,22 @@ function GymApp() {
   const [editEx, setEditEx] = useState(null);
   const [loginModal, setLoginModal] = useState(false);
   const [session, setSession] = useState(null);
+  const [resumenSesion, setResumenSesion] = useState(null);
+  const [chatOpenId, setChatOpenId] = useState(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [currentWeek, setCurrentWeek] = useState(() => { try{return parseInt(localStorage.getItem("it_week")||"0")}catch(e){return 0} });
   const [completedDays, setCompletedDays] = useState(() => { try{return JSON.parse(localStorage.getItem("it_cd")||"[]")}catch(e){return []} });
   const [pdfRoutine, setPdfRoutine] = useState(null);
+  const [libQ, setLibQ] = useState("");
+  const [filtPat, setFiltPat] = useState(null);
+  const [editExModal, setEditExModal] = useState(null);
+  const [editExNombre, setEditExNombre] = useState("");
+  const [editExYT, setEditExYT] = useState("");
   const [customEx, setCustomEx] = useState(() => { try{return JSON.parse(localStorage.getItem("it_cex")||"[]")}catch(e){return []} });
   const [exModal, setExModal] = useState(null);
   const [aliasModal, setAliasModal] = useState(false);
-  const [aliasData, setAliasData] = useState(null); // null | "new" | {ex objeto para editar}
+  const [aliasData, setAliasData] = useState(null);
+  const [aliasForm, setAliasForm] = useState({alias:"",cbu:"",monto:"",banco:"",nota:""});
   const [timer, setTimer] = useState(null);
   const timerRef = useRef(null);
 
@@ -512,7 +505,9 @@ const notifyAlumno = async (alumnoId, mensaje) => {
   const activeR = session ? routines.find(r=>r.id===session.rId) : null;
   const activeDay = activeR ? activeR.days[session.dIdx] : null;
   const esAlumno = readOnly || sessionData?.role==="alumno";
-  const tabs2 = esAlumno ? [{k:"plan",icon:"📅",lbl:"PLAN"},{k:"library",icon:"📚",lbl:"BIBL"},{k:"progress",icon:"📊",lbl:"PROG"}] : [{k:"plan",icon:"📅",lbl:"PLAN"},{k:"routines",icon:"📋",lbl:"RUT"},{k:"scanner",icon:"📷",lbl:"SCAN"},{k:"biblioteca",icon:"📚",lbl:"BIBL"},{k:"progress",icon:"📊",lbl:"PROG"},{k:"alumnos",icon:"👥",lbl:"ALUM"}];
+  const tabs2 = esAlumno
+    ? [{k:"plan",icon:"📅",lbl:es?"PLAN":"PLAN"},{k:"library",icon:"🏋️",lbl:es?"EJERCICIOS":"EXERCISES"},{k:"progress",icon:"📊",lbl:es?"PROGRESO":"PROGRESS"}]
+    : [{k:"plan",icon:"📊",lbl:es?"DASHBOARD":"DASHBOARD"},{k:"routines",icon:"📋",lbl:es?"RUTINAS":"ROUTINES"},{k:"scanner",icon:"📷",lbl:es?"SCANNER":"SCANNER"},{k:"biblioteca",icon:"🏋️",lbl:es?"EJERCICIOS":"EXERCISES"},{k:"progress",icon:"📅",lbl:es?"PLAN":"PLAN"},{k:"alumnos",icon:"👥",lbl:es?"ALUMNOS":"ATHLETES"}];
 
   const generatePDF = (r) => {
     const patColors = {pierna:"#4ade80",empuje:"#60a5fa",traccion:"#a78bfa",core:"#facc15",movil:"#fb923c"};
@@ -634,14 +629,15 @@ const notifyAlumno = async (alumnoId, mensaje) => {
         "::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:"+(darkMode?"#1e2030":"#cbd5e1")+";border-radius:2px}" +
         ".hov{transition:all .15s ease;cursor:pointer}.hov:hover{filter:brightness(1.15)}" +
         "select{background:"+bgSub+";color:"+textMain+";border:1px solid "+border+";border-radius:8px;padding:8px 12px;font-family:DM Sans,sans-serif;font-size:13px;width:100%}" +
-        ".app-inner{max-width:900px;margin:0 auto;width:100%}" +
+        ".app-inner{max-width:1200px;margin:0 auto;width:100%}" +
         "@media(min-width:768px){" +
-        ".app-inner{font-size:118%}" +
-        ".tab-content{padding:20px 24px!important}" +
-        ".card-item{padding:16px 18px!important}" +
-        "nav{justify-content:center}" +
-        "nav>*{max-width:120px;font-size:13px!important}" +
-        "nav>* i{font-size:22px!important}" +
+        ".app-inner{font-size:142%}" +
+        ".tab-content{padding:24px 32px!important}" +
+        ".card-item{padding:18px 22px!important}" +
+        "nav{justify-content:center;max-width:700px;margin:0 auto}" +
+        "nav>*{max-width:140px;font-size:15px!important;padding:12px 0!important}" +
+        "nav>* i{font-size:24px!important}" +
+        ".scroll-area{padding:24px 32px!important;max-width:860px;margin:0 auto}" +
         "}"
       }}/>
 
@@ -658,8 +654,7 @@ const notifyAlumno = async (alumnoId, mensaje) => {
         <div style={{display:"flex",gap:8,alignItems:"center"}}>
           {session&&<span style={{...tag("#4ade80"),fontSize:12}}>✓ Sesion activa</span>}
           {sessionData&&<span style={{fontSize:12,color:"#9ca3af",fontWeight:700,maxWidth:80,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{sessionData.name}</span>}
-          <button className="hov" style={{...btn(),padding:"5px 10px",fontSize:13}} onClick={()=>setLang(l=>l==="es"?"en":"es")}>{es?"ES":"EN"}</button>
-          <button className="hov" style={{...btn(),padding:"5px 10px",fontSize:16}} onClick={()=>{const d=!darkMode;setDarkMode(d);localStorage.setItem("it_dark",d?"true":"false");}}>{darkMode?"☀️":"🌙"}</button>
+          <button className="hov" style={{...btn(),padding:"6px 11px",fontSize:18}} onClick={()=>setSettingsOpen(true)}>⚙️</button>
           {sessionData
             ? <button className="hov" style={{background:esAlumno?"#ef4444":"#ef444422",color:esAlumno?"#fff":"#ef4444",border:"none",borderRadius:8,padding:"8px 14px",fontSize:13,fontWeight:800,cursor:"pointer",fontFamily:"inherit",letterSpacing:.5}} onClick={()=>{localStorage.clear();window.location.reload();}}>{esAlumno?(es?"FINALIZAR SESIÓN":"END SESSION"):"SALIR"}</button>
             : <button className="hov" style={{...btn(),padding:"5px 10px",fontSize:13}} onClick={()=>setLoginModal(true)}>👤</button>
@@ -707,7 +702,16 @@ const notifyAlumno = async (alumnoId, mensaje) => {
         {/* PLAN */}
         {tab==="plan"&&(
           <div>
-            {routines.length===0?(
+            {!esAlumno&&(
+              <DashboardEntrenador
+                alumnos={alumnos}
+                sesiones={alumnoSesiones}
+                es={es}
+                onVerAlumno={(a)=>{setAlumnoActivo(a); setTab("alumnos");}}
+                onChatAlumno={(a)=>{setAlumnoActivo(a); setTab("alumnos");}}
+              />
+            )}
+            {esAlumno&&routines.length===0?(
               <div style={{textAlign:"center",padding:"60px 0",color:"#4a5568"}}>
                 <div style={{fontSize:49,marginBottom:12}}>📋</div>
                 <div style={{fontSize:20,fontWeight:700,letterSpacing:1,marginBottom:6}}>{es?"Sin rutinas aun":"No routines yet"}</div>
@@ -719,7 +723,7 @@ const notifyAlumno = async (alumnoId, mensaje) => {
                 <div style={{marginBottom:16}}>
                   <div style={{fontSize:27,fontWeight:800,letterSpacing:1,marginBottom:2}}>{r.name}</div>
                   <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
-                    <div style={{fontSize:15,color:"#4a5568"}}>{r.created} · {r.days.length} {es?"dias":"days"}{r.note?" · "+r.note:""}</div>
+                    <div style={{fontSize:15,color:"#4a5568"}}>{r.created} · {r.days.length} {es?es?"dias":"days":"days"}{r.note?" · "+r.note:""}</div>
                     <div style={{display:"flex",gap:6}}>
                       <button className="hov" style={{background:"#1a1d2e",border:"1px solid #2d3748",color:"#e2e8f0",borderRadius:9,padding:"6px 12px",fontFamily:"Barlow Condensed,sans-serif",fontSize:15,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:5}} onClick={()=>generatePDF(r)}>
                         📄 PDF
@@ -768,6 +772,7 @@ const notifyAlumno = async (alumnoId, mensaje) => {
                               <span style={{fontSize:20}}>{pat?.icon||"🔥"}</span>
                               <div style={{flex:1}}>
                                 <div style={{fontSize:15,fontWeight:700}}>{es?info?.name:info?.nameEn||info?.name}</div>
+                               {info?.youtube&&<a href={info.youtube} target="_blank" rel="noreferrer" style={{display:"inline-flex",alignItems:"center",gap:4,background:"#f9731622",color:"#f97316",border:"1px solid #f9731633",borderRadius:6,padding:"2px 8px",fontSize:11,fontWeight:700,textDecoration:"none",marginTop:3}}>▶ VER</a>}
                                 {(ex.sets||ex.reps)&&<div style={{fontSize:12,color:"#f97316",marginTop:2}}>{ex.sets&&ex.sets+"x"}{ex.reps}{ex.kg?" · "+ex.kg+"kg":""}</div>}
                               </div>
                             </div>
@@ -796,6 +801,7 @@ const notifyAlumno = async (alumnoId, mensaje) => {
                             <div style={{width:54,height:54,borderRadius:12,background:col+"15",border:"1px solid "+col+"22",display:"flex",alignItems:"center",justifyContent:"center",fontSize:37,flexShrink:0}}>{pat?.icon||"?"}</div>
                             <div style={{flex:1,minWidth:0}}>
                               <div style={{fontSize:24,fontWeight:800,color:col,letterSpacing:0.5}}>{es?info?.name:info?.nameEn||info?.name}</div>
+                              {info?.youtube&&<a href={info.youtube} target="_blank" rel="noreferrer" style={{display:"inline-flex",alignItems:"center",gap:4,background:"#ef444422",color:"#ef4444",border:"1px solid #ef444433",borderRadius:6,padding:"3px 9px",fontSize:12,fontWeight:700,textDecoration:"none",marginTop:4}}>▶ VER VIDEO</a>}
                               <div style={{display:"flex",gap:6,marginTop:4,flexWrap:"wrap",alignItems:"center"}}>
                                 {ex.kg&&<span style={{background:"#1a1d2e",borderRadius:6,padding:"2px 8px",fontSize:15,fontWeight:700,color:"#e2e8f0"}}>{ex.kg} kg</span>}
                                 {ex.pause&&<span style={{background:"#1a1d2e",borderRadius:6,padding:"2px 8px",fontSize:15,color:"#9ca3af"}}>⏱ {fmtP(ex.pause)}</span>}
@@ -838,43 +844,8 @@ const notifyAlumno = async (alumnoId, mensaje) => {
         {/* BIBLIOTECA */}
         {tab==="library"&&(
           <div>
-            {!esAlumno&&(
-              <button className="hov" style={{...btn("#ef4444"),width:"100%",marginBottom:10,padding:"10px",fontSize:16}} onClick={()=>setExModal("new")}>
-                + {es?"AGREGAR EJERCICIO":"ADD EXERCISE"}
-              </button>
-            )}
-            <input style={inp} placeholder={es?"Buscar ejercicio o musculo...":"Search exercise or muscle..."} value={search} onChange={e=>setSearch(e.target.value)}/>
-            <div style={{display:"flex",gap:6,flexWrap:"wrap",margin:"10px 0"}}>
-              {Object.entries(PATS).map(([k,p])=>(
-                <button key={k} className="hov" style={{...tag(p.color),cursor:"pointer",border:filterPat===k?("2px solid "+p.color):"1px solid "+p.color+"44"}} onClick={()=>setFilterPat(filterPat===k?null:k)}>
-                  {p.icon} {es?p.label:p.labelEn}
-                </button>
-              ))}
-            </div>
-            {filteredEx.map(ex=>{
-              const pat=PATS[ex.pattern]||{icon:"💪",color:"#9ca3af",label:"Otro",labelEn:"Other"}; const pg=progress[ex.id];
-              return(
-                <div key={ex.id} className="hov" style={{...card,cursor:"pointer",border:pg?("1px solid "+pat.color+"44"):"1px solid transparent"}} onClick={()=>setDetailEx(ex)}>
-                  <div style={{display:"flex",alignItems:"center",gap:10}}>
-                    <div style={{width:44,height:44,borderRadius:10,background:pat.color+"0a",border:"1px solid "+pat.color+"22",display:"flex",alignItems:"center",justifyContent:"center",fontSize:27,flexShrink:0}}>{pat.icon}</div>
-                    <div style={{flex:1,minWidth:0}}>
-                      <div style={{fontSize:18,fontWeight:700,marginBottom:2}}>{es?ex.name:ex.nameEn}</div>
-                      <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
-                        <span style={tag(pat.color)}>{es?pat.label:pat.labelEn}</span>
-                        <span style={{fontSize:13,color:"#4a5568"}}>{es?ex.muscle:ex.muscle} · {ex.equip}</span>
-                      </div>
-                    </div>
-                    {pg&&pg.max>0&&<div style={{textAlign:"right",flexShrink:0}}><div style={{fontSize:17,fontWeight:700,color:pat.color}}>{pg.max}kg</div><div style={{fontSize:12,color:"#4a5568"}}>max</div></div>}
-                    {!esAlumno&&customEx.find(c=>c.id===ex.id)&&(
-                      <div style={{display:"flex",gap:4,flexShrink:0}} onClick={e=>e.stopPropagation()}>
-                        <button className="hov" style={{...btn(),padding:"4px 8px",fontSize:13}} onClick={()=>setExModal(ex)}>✏️</button>
-                        <button className="hov" style={{...btn("#ef444422"),color:"#ef4444",padding:"4px 8px",fontSize:13}} onClick={()=>{setCustomEx(p=>p.filter(c=>c.id!==ex.id));toast2(es?"Ejercicio eliminado":"Exercise deleted");}}>🗑️</button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+            {esAlumno && <LibraryAlumno allEx={allEx} es={es}/>}
+            {!esAlumno && <GestionBiblioteca sb={sb} customEx={customEx} setCustomEx={setCustomEx} toast2={toast2} es={es}/>}
           </div>
         )}
 
@@ -892,20 +863,26 @@ const notifyAlumno = async (alumnoId, mensaje) => {
               </div>
             </div>
             <button className="hov" style={{...btn("#ef4444"),width:"100%",marginBottom:12,padding:"10px",fontSize:17}} onClick={()=>setNewR({name:"",numDays:3,days:Array.from({length:3},(_,i)=>({label:"Dia "+(i+1),warmup:[],exercises:[],showWarmup:false,showMain:true})),note:""})}>
-              + NUEVA RUTINA
+              {es?"+ NUEVA RUTINA":"+ NEW ROUTINE"}
             </button>
             {routines.map(r=>(
               <div key={r.id} style={card}>
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
                   <div>
                     <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
-                      <div style={{fontSize:20,fontWeight:700}}>{r.name}</div>
+                      <div style={{fontSize:24,fontWeight:800}}>{r.name}</div>
                       {r.scanned&&<span style={{background:"#60a5fa22",color:"#60a5fa",border:"1px solid #60a5fa33",borderRadius:5,padding:"1px 7px",fontSize:11,fontWeight:700}}>📷 Escaneada</span>}
                     </div>
                     {r.alumno&&<div style={{fontSize:15,fontWeight:700,color:"#ef4444",marginTop:2}}>👤 {r.alumno}</div>}
-                    <div style={{fontSize:18,color:"#4a5568"}}>{r.days.length} {es?"dias":"days"}</div>
+                    <div style={{fontSize:18,color:"#4a5568",fontWeight:700}}>{r.days.length} {es?"dias":"days"}</div>
                   </div>
-                  <button className="hov" style={{...btn("#ef444422"),color:"#ef4444",fontSize:13,padding:"6px 14px",fontWeight:700}} onClick={()=>{setRoutines(p=>p.filter(x=>x.id!==r.id));toast2((es?"Rutina eliminada":"Routine deleted")+" ✓");}}>{es?"ELIMINAR":"DELETE"}</button>
+                  <div style={{display:"flex",gap:6}}>
+                    <button className="hov" style={{background:"#1a1d2e",border:"none",borderRadius:8,padding:"6px 12px",fontSize:13,fontWeight:700,color:"#9ca3af",cursor:"pointer",fontFamily:"inherit"}}
+                      onClick={()=>setRoutines(p=>p.map(rr=>rr.id===r.id?{...rr,collapsed:!rr.collapsed}:rr))}>
+                      {r.collapsed?("▼ "+(es?"VER":"VIEW")):("▲ "+(es?"CERRAR":"CLOSE"))}
+                    </button>
+                    <button className="hov" style={{background:"#ef444422",color:"#ef4444",border:"none",borderRadius:8,padding:"6px 12px",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>{setRoutines(p=>p.filter(x=>x.id!==r.id));toast2((es?"Rutina eliminada":"Routine deleted")+" ✓");}}>🗑️</button>
+                  </div>
                 </div>
                 {/* Botones guardar y asignar */}
                 <div style={{display:"flex",gap:6,marginBottom:10,flexWrap:"wrap"}}>
@@ -929,7 +906,7 @@ const notifyAlumno = async (alumnoId, mensaje) => {
                     }catch(e){toast2("Error al guardar");}
                   }}>💾 {es?"Guardar":"Save"}</button>
                 </div>
-                {r.days.map((d,di)=>{
+                {!r.collapsed&&r.days.map((d,di)=>{
                   const moveEx = (bloque, fromIdx, toIdx) => {
                     setRoutines(p=>p.map(rr=>rr.id===r.id?{...rr,days:rr.days.map((dd,ddi)=>{
                       if(ddi!==di) return dd;
@@ -946,26 +923,26 @@ const notifyAlumno = async (alumnoId, mensaje) => {
                     const canUp = ei>0;
                     const canDown = ei<exList.length-1;
                     return(
-                      <div key={ei} style={{background:"#13151f",borderRadius:10,padding:"8px 10px",marginBottom:4,border:"1px solid #1a1d2e"}}>
-                        <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>
+                      <div key={ei} style={{background:"#13151f",borderRadius:12,padding:"12px 14px",marginBottom:4,border:"1px solid #1a1d2e"}}>
+                        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
                           {/* Flechas orden */}
                           <div style={{display:"flex",flexDirection:"column",gap:1,flexShrink:0}}>
                             <button className="hov" style={{background:canUp?"#1a1d2e":"#0a0c14",border:"none",borderRadius:4,padding:"2px 5px",fontSize:10,color:canUp?"#9ca3af":"#2d3748",cursor:canUp?"pointer":"default",lineHeight:1}} onClick={()=>canUp&&moveEx(bloque,ei,ei-1)}>▲</button>
                             <button className="hov" style={{background:canDown?"#1a1d2e":"#0a0c14",border:"none",borderRadius:4,padding:"2px 5px",fontSize:10,color:canDown?"#9ca3af":"#2d3748",cursor:canDown?"pointer":"default",lineHeight:1}} onClick={()=>canDown&&moveEx(bloque,ei,ei+1)}>▼</button>
                           </div>
-                          <span style={{fontSize:20}}>{pat?.icon||"?"}</span>
-                          <span style={{fontSize:15,fontWeight:700,flex:1}}>{es?info?.name:info?.nameEn||info?.name}</span>
-                          <button className="hov" style={{background:"#1a1d2e",border:"none",borderRadius:6,padding:"4px 8px",fontSize:13,color:"#9ca3af",cursor:"pointer"}} onClick={()=>setEditEx({rId:r.id,dIdx:di,eIdx:ei,bloque,ex:{...ex}})}>✏</button>
+                          <span style={{fontSize:26}}>{pat?.icon||"?"}</span>
+                          <span style={{fontSize:24,fontWeight:900,flex:1}}>{es?info?.name:info?.nameEn||info?.name}</span>
+                          <button className="hov" style={{background:"#1a1d2e",border:"none",borderRadius:8,padding:"4px 8px",fontSize:13,color:"#9ca3af",cursor:"pointer"}} onClick={()=>setEditEx({rId:r.id,dIdx:di,eIdx:ei,bloque,ex:{...ex}})}>✏</button>
                           <button className="hov" style={{background:"#ef444422",border:"none",borderRadius:6,padding:"4px 9px",fontSize:13,color:"#ef4444",cursor:"pointer",fontWeight:700}} onClick={removeEx}>🗑️</button>
                         </div>
-                        <div style={{display:"flex",gap:8,flexWrap:"wrap",paddingLeft:34}}>
-                          {ex.kg&&<span style={{fontSize:14,color:"#9ca3af"}}>{ex.kg}kg</span>}
-                          <span style={{fontSize:14,color:"#9ca3af"}}>{fmtP(ex.pause)}</span>
+                        <div style={{display:"flex",gap:10,flexWrap:"wrap",paddingLeft:40,marginTop:4}}>
+                          {ex.kg&&<span style={{fontSize:18,fontWeight:700,color:"#9ca3af"}}>{ex.kg}kg</span>}
+                          <span style={{fontSize:18,fontWeight:700,color:"#9ca3af"}}>{fmtP(ex.pause)}</span>
                         </div>
                         {(ex.weeks||[]).length>0&&(
                           <div style={{display:"flex",gap:4,marginTop:4,overflowX:"auto",paddingLeft:34}}>
                             {ex.weeks.map((w,wi)=>(
-                              <div key={wi} style={{background:"#0a0c14",borderRadius:6,padding:"3px 7px",flexShrink:0,fontSize:12,color:"#9ca3af"}}>
+                              <div key={wi} style={{background:"#0a0c14",borderRadius:8,padding:"5px 10px",fontSize:14,fontWeight:700,flexShrink:0,fontSize:12,color:"#9ca3af"}}>
                                 <span style={{color:pat?.color,fontWeight:700}}>S{wi+1}</span> {w.sets}x{w.reps}{w.kg?" "+w.kg+"kg":""}
                               </div>
                             ))}
@@ -978,7 +955,7 @@ const notifyAlumno = async (alumnoId, mensaje) => {
                   const hasWarmup = (d.warmup||[]).length>0;
                   return(
                   <div key={di} style={{borderLeft:"2px solid #1a1d2e",paddingLeft:10,marginBottom:10}}>
-                    <div style={{fontSize:17,fontWeight:700,color:"#4a5568",marginBottom:6,letterSpacing:1}}>{es?"DIA ":"DAY "}{di+1}</div>
+                    <div style={{fontSize:20,fontWeight:700,color:"#4a5568",marginBottom:6,letterSpacing:1}}>{es?"DIA ":"DAY "}{di+1}</div>
 
                     {/* BLOQUE ENTRADA EN CALOR */}
                     <div style={{marginBottom:8}}>
@@ -1111,7 +1088,7 @@ const notifyAlumno = async (alumnoId, mensaje) => {
               <button className="hov" style={{background:"#1a1d2e",color:"#9ca3af",border:"none",borderRadius:8,padding:"6px 12px",fontFamily:"Barlow Condensed,sans-serif",fontSize:13,fontWeight:700,cursor:"pointer"}} onClick={cargarAlumnos}>🔄</button>
             </div>
           </div>
-          <button className="hov" style={{background:"#ef4444",color:"#fff",border:"none",borderRadius:10,padding:"12px",width:"100%",fontFamily:"Barlow Condensed,sans-serif",fontSize:16,fontWeight:700,cursor:"pointer",marginBottom:14}} onClick={()=>setNewAlumnoForm(true)}>+ NUEVO ALUMNO</button>
+          <button className="hov" style={{background:"#ef4444",color:"#fff",border:"none",borderRadius:10,padding:"12px",width:"100%",fontFamily:"Barlow Condensed,sans-serif",fontSize:16,fontWeight:700,cursor:"pointer",marginBottom:14}} onClick={()=>setNewAlumnoForm(true)}>{es?"+ NUEVO ALUMNO":"+ NEW ATHLETE"}</button>
           {/* Alertas renovación */}
           {(()=>{
             const vencen = alumnos.filter(a=>{
@@ -1145,28 +1122,28 @@ const notifyAlumno = async (alumnoId, mensaje) => {
 
           {newAlumnoForm&&(
             <div style={{background:"#0e1018",border:"1px solid #2d3748",borderRadius:12,padding:"16px",marginBottom:14}}>
-              <div style={{fontSize:14,fontWeight:700,letterSpacing:1,marginBottom:12,color:"#e2e8f0"}}>NUEVO ALUMNO</div>
+              <div style={{fontSize:14,fontWeight:700,letterSpacing:1,marginBottom:12,color:"#e2e8f0"}}>{es?"NUEVO ALUMNO":"NEW ATHLETE"}</div>
               <div style={{marginBottom:8}}>
-                <span style={{fontSize:11,fontWeight:700,letterSpacing:1.5,color:"#4a5568",marginBottom:3,display:"block"}}>NOMBRE</span>
+                <span style={{fontSize:11,fontWeight:700,letterSpacing:1.5,color:"#4a5568",marginBottom:3,display:"block"}}>{es?"NOMBRE":"NAME"}</span>
                 <input style={{background:"#0a0c14",color:"#e2e8f0",border:"1px solid #1a1d2e",borderRadius:8,padding:"8px 12px",fontFamily:"DM Sans,sans-serif",fontSize:16,width:"100%",boxSizing:"border-box"}} value={newAlumnoData.nombre} onChange={e=>setNewAlumnoData(p=>({...p,nombre:e.target.value}))} placeholder="Ej: Agustin Sevita"/>
               </div>
               <div style={{marginBottom:8}}>
-                <span style={{fontSize:11,fontWeight:700,letterSpacing:1.5,color:"#4a5568",marginBottom:3,display:"block"}}>EMAIL</span>
+                <span style={{fontSize:11,fontWeight:700,letterSpacing:1.5,color:"#4a5568",marginBottom:3,display:"block"}}>{es?"EMAIL":"EMAIL"}</span>
                 <input style={{background:"#0a0c14",color:"#e2e8f0",border:"1px solid #1a1d2e",borderRadius:8,padding:"8px 12px",fontFamily:"DM Sans,sans-serif",fontSize:16,width:"100%",boxSizing:"border-box"}} value={newAlumnoData.email} onChange={e=>setNewAlumnoData(p=>({...p,email:e.target.value}))} placeholder="alumno@email.com" type="email"/>
               </div>
               <div style={{marginBottom:12}}>
-                <span style={{fontSize:11,fontWeight:700,letterSpacing:1.5,color:"#4a5568",marginBottom:3,display:"block"}}>CONTRASEÑA</span>
+                <span style={{fontSize:11,fontWeight:700,letterSpacing:1.5,color:"#4a5568",marginBottom:3,display:"block"}}>{es?"CONTRASEÑA":"PASSWORD"}</span>
                 <input style={{background:"#0a0c14",color:"#e2e8f0",border:"1px solid #1a1d2e",borderRadius:8,padding:"8px 12px",fontFamily:"DM Sans,sans-serif",fontSize:16,width:"100%",boxSizing:"border-box"}} value={newAlumnoData.pass} onChange={e=>setNewAlumnoData(p=>({...p,pass:e.target.value}))} placeholder="Contraseña" type="password"/>
               </div>
               <div style={{display:"flex",gap:8}}>
-                <button className="hov" style={{background:"#1a1d2e",color:"#e2e8f0",border:"none",borderRadius:8,padding:"10px",flex:1,fontFamily:"Barlow Condensed,sans-serif",fontSize:15,fontWeight:700,cursor:"pointer"}} onClick={()=>{setNewAlumnoForm(false);setNewAlumnoData({nombre:"",email:"",pass:""});}}>CANCELAR</button>
+                <button className="hov" style={{background:"#1a1d2e",color:"#e2e8f0",border:"none",borderRadius:8,padding:"10px",flex:1,fontFamily:"Barlow Condensed,sans-serif",fontSize:15,fontWeight:700,cursor:"pointer"}} onClick={()=>{setNewAlumnoForm(false);setNewAlumnoData({nombre:"",email:"",pass:""});}}>{es?"CANCELAR":"CANCEL"}</button>
                 <button className="hov" style={{background:"#ef4444",color:"#fff",border:"none",borderRadius:8,padding:"10px",flex:2,fontFamily:"Barlow Condensed,sans-serif",fontSize:15,fontWeight:700,cursor:"pointer"}} onClick={async ()=>{
                   if(!newAlumnoData.nombre.trim()||!newAlumnoData.email.trim()) return;
                   setLoadingSB(true);
                   const res = await sb.createAlumno({nombre:newAlumnoData.nombre.trim(),email:newAlumnoData.email.trim(),password:newAlumnoData.pass||"irontrack123",entrenador_id:ENTRENADOR_ID});
                   if(res && res[0]) {
                     setAlumnos(prev=>[...prev,res[0]]);
-                    toast2("Alumno creado: "+newAlumnoData.nombre+" ✓");
+                    toast2(es?"Alumno creado: ":"Athlete created: "+newAlumnoData.nombre+" ✓");
                     setNewAlumnoForm(false);
                     setNewAlumnoData({nombre:"",email:"",pass:""});
                   } else { toast2("Error al crear alumno"); }
@@ -1199,6 +1176,10 @@ const notifyAlumno = async (alumnoId, mensaje) => {
                     setEditAlumnoPass("");
                   }}>✏️</button>
                   <button className="hov" style={{background:"#ef4444",color:"#fff",border:"none",borderRadius:8,padding:"6px 14px",fontFamily:"Barlow Condensed,sans-serif",fontSize:13,fontWeight:700,cursor:"pointer"}} onClick={async ()=>{
+                    if(alumnoActivo?.id===a.id){
+                      setAlumnoActivo(null);
+                      return;
+                    }
                     setAlumnoActivo(a);
                     setRegistrosSubTab(0);
                     setLoadingSB(true);
@@ -1209,34 +1190,59 @@ const notifyAlumno = async (alumnoId, mensaje) => {
                     const ses = await sb.getSesiones(a.id);
                     setAlumnoSesiones(ses||[]);
                     setLoadingSB(false);
-                  }}>VER</button>
+                  }}>{alumnoActivo?.id===a.id?"CERRAR":"VER"}</button>
+                  <button className="hov" style={{background:"#ef444422",color:"#ef4444",border:"none",borderRadius:8,padding:"8px 12px",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}
+                    onClick={async()=>{
+                      if(!confirm("Eliminar a "+a.nombre+"? Esta accion no se puede deshacer.")) return;
+                      await sb.deleteAlumno?.(a.id);
+                      setAlumnos(prev=>prev.filter(x=>x.id!==a.id));
+                      toast2("Alumno eliminado");
+                    }}>🗑</button>
                 </div>
               </div>
               {alumnoActivo?.id===a.id&&(
                 <div>
-                  <div style={{fontSize:12,fontWeight:700,color:"#4a5568",marginBottom:8,letterSpacing:1}}>RUTINAS DE {a.nombre.toUpperCase()}</div>
+                  <div style={{fontSize:12,fontWeight:700,color:"#4a5568",marginBottom:8,letterSpacing:1}}>📋 HISTORIAL DE RUTINAS</div>
+                  {rutinasSB.length===0&&<div style={{fontSize:12,color:"#374151",padding:"8px 0"}}>Sin rutinas asignadas aun</div>}
                   {rutinasSB.map(r=>(
-                    <div key={r.id} style={{background:"#13151f",borderRadius:8,padding:"10px",marginBottom:6}}>
-                      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
-                        <div style={{fontSize:14,fontWeight:700}}>{r.nombre}</div>
-                        <div style={{display:"flex",gap:6}}>
-                          <button className="hov" style={{background:"#25d36622",color:"#25d366",border:"none",borderRadius:8,padding:"5px 10px",fontFamily:"Barlow Condensed,sans-serif",fontSize:12,fontWeight:700,cursor:"pointer"}} onClick={()=>{
-                            const link = window.location.href.split("?")[0]+"?r="+btoa(JSON.stringify({...r.datos,id:r.id,alumnoId:a.id}));
-                            if(navigator.share){navigator.share({title:"Rutina "+r.nombre,text:"Tu rutina - "+a.nombre,url:link});}
+                    <div key={r.id} style={{background:"#13151f",borderRadius:10,padding:"12px",marginBottom:8,border:"1px solid #1a1d2e"}}>
+                      <div style={{marginBottom:8}}>
+                        <div style={{fontSize:15,fontWeight:800}}>{r.nombre}</div>
+                        <div style={{fontSize:11,color:"#4a5568",marginTop:2}}>
+                          {r.datos?.days?.length||0} dias · {r.created_at?new Date(r.created_at).toLocaleDateString("es-AR"):""}
+                        </div>
+                      </div>
+                      <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                        <button className="hov" style={{background:"#60a5fa22",color:"#60a5fa",border:"none",borderRadius:8,padding:"6px 12px",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}
+                          onClick={()=>{
+                            const rutina={id:r.id,...(r.datos||{}),name:r.nombre,saved:true,alumno_id:a.id,alumno:a.nombre};
+                            setRoutines(prev=>{const ex=prev.find(x=>x.id===r.id);return ex?prev.map(x=>x.id===r.id?rutina:x):[rutina,...prev];});
+                            setTab("routines");
+                            toast2(es?"Rutina abierta para editar en RUTINAS":"Routine opened for editing");
+                          }}>{es?"✏️ Editar":"✏️ Edit"}</button>
+                        <button className="hov" style={{background:"#a78bfa22",color:"#a78bfa",border:"none",borderRadius:8,padding:"6px 12px",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}
+                          onClick={()=>{
+                            const copia={...(r.datos||{}),id:"c_"+Date.now(),name:"Copia de "+r.nombre,created:new Date().toLocaleDateString("es-AR"),saved:false};
+                            setRoutines(prev=>[copia,...prev]);
+                            setTab("routines");
+                            toast2(es?"Copia creada en RUTINAS":"Copy created in ROUTINES");
+                          }}>{es?"📋 Copiar":"📋 Copy"}</button>
+                        <button className="hov" style={{background:"#25d36622",color:"#25d366",border:"none",borderRadius:8,padding:"6px 12px",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}
+                          onClick={async()=>{
+                            const link=window.location.href.split("?")[0]+"?r="+btoa(JSON.stringify({...r.datos,id:r.id,alumnoId:a.id}));
+                            if(navigator.share){navigator.share({title:"Rutina "+r.nombre,url:link}).catch(()=>{});}
                             else{navigator.clipboard&&navigator.clipboard.writeText(link);toast2("Link copiado!");}
-                          }}>📤</button>
-                          <button className="hov" style={{background:"#ef444422",color:"#ef4444",border:"none",borderRadius:8,padding:"5px 10px",fontFamily:"Barlow Condensed,sans-serif",fontSize:12,fontWeight:700,cursor:"pointer"}} onClick={async ()=>{
+                          }}>{es?"📤 Compartir":"📤 Share"}</button>
+                        <button className="hov" style={{background:"#ef444422",color:"#ef4444",border:"none",borderRadius:8,padding:"6px 12px",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}
+                          onClick={async()=>{
+                            if(!confirm("Borrar rutina "+r.nombre+"?")) return;
                             await sb.deleteRutina(r.id);
                             setRutinasSB(prev=>prev.filter(x=>x.id!==r.id));
                             toast2("Rutina eliminada");
-                          }}>🗑</button>
-                        </div>
+                          }}>{es?"🗑 Borrar":"🗑 Delete"}</button>
                       </div>
-                      <div style={{fontSize:11,color:"#4a5568"}}>{r.datos?.days?.length||0} días · {r.datos?.created||""}</div>
                     </div>
                   ))}
-                  
-                  {rutinasSB.length>0&&<div style={{fontSize:11,color:"#4a5568",marginBottom:6,textAlign:"center"}}>📤 = enviar link al alumno · 🗑 = eliminar</div>}
                   {alumnoProgreso.length>0&&(
                     <div style={{marginTop:10,marginBottom:6}}>
                       <div style={{fontSize:12,fontWeight:700,color:"#4a5568",marginBottom:8,letterSpacing:1}}>📊 REGISTROS DE {a.nombre.toUpperCase()}</div>
@@ -1336,8 +1342,14 @@ const notifyAlumno = async (alumnoId, mensaje) => {
 
                   {/* CHAT CON ALUMNO */}
                   <div style={{marginTop:10,marginBottom:6}}>
-                    <div style={{fontSize:12,fontWeight:700,color:"#4a5568",marginBottom:8,letterSpacing:1}}>💬 CHAT CON {a.nombre.toUpperCase()}</div>
-                    <Chat alumnoId={a.id} alumnoNombre={a.nombre} esEntrenador={true} sb={sb}/>
+                    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
+                      <div style={{fontSize:12,fontWeight:700,color:"#4a5568",letterSpacing:1}}>💬 CHAT CON {a.nombre.toUpperCase()}</div>
+                      <button className="hov" onClick={()=>setChatOpenId(chatOpenId===a.id?null:a.id)}
+                        style={{background:"#1a1d2e",border:"none",borderRadius:8,padding:"4px 12px",color:"#9ca3af",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>
+                        {chatOpenId===a.id?"▲ Cerrar":"▼ Abrir"}
+                      </button>
+                    </div>
+                    {chatOpenId===a.id&&<Chat alumnoId={a.id} alumnoNombre={a.nombre} esEntrenador={true} sb={sb}/>}
                   </div>
 
                   {alumnoSesiones.length>0&&(
@@ -1370,7 +1382,7 @@ const notifyAlumno = async (alumnoId, mensaje) => {
                     if(res&&res[0]){setRutinasSB(prev=>[...prev,res[0]]);toast2("Rutina asignada ✓");}
                     else{toast2("Error al asignar rutina");}
                     setLoadingSB(false);
-                  }}>+ Asignar rutina actual</button>
+                  }}>{es?"+ Asignar rutina actual":"+ Assign current routine"}</button>
                 </div>
               )}
             </div>
@@ -1396,6 +1408,32 @@ const notifyAlumno = async (alumnoId, mensaje) => {
               const totalDays = r ? r.days.length : 1;
               const daysThisWeek = newCompleted.filter(k=>k.startsWith(session.rId+"-")&&k.endsWith("-w"+currentWeek)).length;
               setCompletedDays(newCompleted);
+              // Calcular resumen de la sesion
+              const durMin = Math.round((Date.now()-(session.startTime||Date.now()))/60000)||1;
+              const exsCompleted = activeDay.exercises||[];
+              const totalSets = exsCompleted.reduce((acc,ex)=>acc+(parseInt(ex.sets)||3),0);
+              const volTotal = exsCompleted.reduce((acc,ex)=>{
+                const kg=parseFloat(ex.kg)||0;
+                const sets=parseInt(ex.sets)||3;
+                const reps=parseInt(ex.reps)||8;
+                return acc+(kg*sets*reps);
+              },0);
+              const prsNuevos = exsCompleted.filter(ex=>{
+                const pg=progress[ex.id];
+                if(!pg||!pg.max) return false;
+                const maxKg=parseFloat(ex.kg)||0;
+                return maxKg>pg.max;
+              }).length;
+              setResumenSesion({
+                durMin,
+                ejercicios: exsCompleted.length,
+                totalSets,
+                volTotal: Math.round(volTotal),
+                prsNuevos,
+                diaLabel: activeDay.label||("Dia "+(session.dIdx+1)),
+                rutinaName: r?.name||"Entrenamiento",
+                fecha: new Date().toLocaleDateString("es-AR"),
+              });
               setSession(null);
               // Guardar sesión completada en Supabase si es modo alumno
               if(readOnly && sharedParam) {
@@ -1444,7 +1482,108 @@ const notifyAlumno = async (alumnoId, mensaje) => {
         </div>
       )}
 
-      {/* MODAL DETAIL */}
+      
+      
+      {/* MODAL SETTINGS */}
+      {settingsOpen&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.88)",zIndex:200,display:"flex",alignItems:"flex-end",justifyContent:"center"}}
+          onClick={()=>setSettingsOpen(false)}>
+          <div style={{background:"#0e1018",borderRadius:"16px 16px 0 0",padding:"20px 16px 36px",width:"100%",maxWidth:480,border:"1px solid #1a1d2e"}}
+            onClick={e=>e.stopPropagation()}>
+            <div style={{width:40,height:4,background:"#2d3748",borderRadius:2,margin:"0 auto 20px"}}></div>
+            <div style={{fontSize:18,fontWeight:800,letterSpacing:1,marginBottom:20}}>⚙️ CONFIGURACION</div>
+
+            {/* Idioma */}
+            <div style={{marginBottom:20}}>
+              <div style={{fontSize:11,fontWeight:700,color:"#4a5568",letterSpacing:2,marginBottom:10}}>IDIOMA</div>
+              <div style={{display:"flex",background:"#0a0c14",border:"1px solid #1a1d2e",borderRadius:10,padding:4,gap:4}}>
+                {["es","en"].map(l=>(
+                  <button key={l} className="hov"
+                    style={{flex:1,padding:"10px",border:"none",borderRadius:8,fontFamily:"inherit",fontSize:15,fontWeight:700,cursor:"pointer",
+                      background:lang===l?"#ef4444":"transparent",color:lang===l?"#fff":"#4a5568"}}
+                    onClick={()=>{setLang(l);localStorage.setItem("it_lang",l);}}>
+                    {l==="es"?"🇦🇷 ESPAÑOL":"🇺🇸 ENGLISH"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Tema */}
+            <div style={{marginBottom:24}}>
+              <div style={{fontSize:11,fontWeight:700,color:"#4a5568",letterSpacing:2,marginBottom:10}}>TEMA</div>
+              <div style={{display:"flex",background:"#0a0c14",border:"1px solid #1a1d2e",borderRadius:10,padding:4,gap:4}}>
+                {[["dark","🌙 NOCHE",true],["light","☀️ DIA",false]].map(([k,lbl,val])=>(
+                  <button key={k} className="hov"
+                    style={{flex:1,padding:"10px",border:"none",borderRadius:8,fontFamily:"inherit",fontSize:15,fontWeight:700,cursor:"pointer",
+                      background:darkMode===val?"#ef4444":"transparent",color:darkMode===val?"#fff":"#4a5568"}}
+                    onClick={()=>{setDarkMode(val);localStorage.setItem("it_dark",val?"true":"false");}}>
+                    {lbl}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button className="hov"
+              style={{width:"100%",padding:"13px",background:"#1a1d2e",border:"none",borderRadius:12,color:"#9ca3af",fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}
+              onClick={()=>setSettingsOpen(false)}>
+              CERRAR
+            </button>
+          </div>
+        </div>
+      )}
+
+{/* MODAL RESUMEN SESION */}
+      {resumenSesion&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.92)",zIndex:150,display:"flex",alignItems:"center",justifyContent:"center",padding:"0 16px"}}>
+          <div style={{background:"#0e1018",borderRadius:20,padding:"28px 20px",width:"100%",maxWidth:420,border:"1px solid #1a1d2e",textAlign:"center"}}>
+            <div style={{fontSize:52,marginBottom:4}}>💪</div>
+            <div style={{fontSize:26,fontWeight:900,letterSpacing:1,marginBottom:2}}>ENTRENAMIENTO</div>
+            <div style={{fontSize:26,fontWeight:900,letterSpacing:1,color:"#ef4444",marginBottom:4}}>COMPLETADO</div>
+            <div style={{fontSize:13,color:"#4a5568",marginBottom:20}}>{resumenSesion.diaLabel} · {resumenSesion.rutinaName} · {resumenSesion.fecha}</div>
+
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
+              {[
+                ["⏱","DURACIÓN",resumenSesion.durMin+" min","#60a5fa"],
+                ["🏋️","EJERCICIOS",resumenSesion.ejercicios,"#a78bfa"],
+                ["🔄","SETS TOTALES",resumenSesion.totalSets,"#4ade80"],
+                ["⚖️","VOLUMEN",resumenSesion.volTotal.toLocaleString()+" kg","#f59e0b"],
+              ].map(([icon,label,val,color])=>(
+                <div key={label} style={{background:"#13151f",borderRadius:12,padding:"14px 10px",border:"1px solid #1a1d2e"}}>
+                  <div style={{fontSize:22}}>{icon}</div>
+                  <div style={{fontSize:22,fontWeight:800,color,marginTop:4}}>{val}</div>
+                  <div style={{fontSize:10,fontWeight:700,color:"#4a5568",letterSpacing:1,marginTop:2}}>{label}</div>
+                </div>
+              ))}
+            </div>
+
+            {resumenSesion.prsNuevos>0&&(
+              <div style={{background:"#f59e0b22",border:"1px solid #f59e0b44",borderRadius:12,padding:"12px",marginBottom:16}}>
+                <div style={{fontSize:28}}>🏆</div>
+                <div style={{fontSize:18,fontWeight:800,color:"#f59e0b",marginTop:4}}>
+                  {resumenSesion.prsNuevos} nuevo{resumenSesion.prsNuevos>1?"s":""} PR!
+                </div>
+              </div>
+            )}
+
+            <div style={{display:"flex",gap:8}}>
+              <button className="hov" style={{flex:1,padding:"12px",background:"#1a1d2e",border:"none",borderRadius:12,color:"#9ca3af",fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}
+                onClick={()=>setResumenSesion(null)}>
+                Cerrar
+              </button>
+              <button className="hov" style={{flex:1,padding:"12px",background:"#ef4444",border:"none",borderRadius:12,color:"#fff",fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}
+                onClick={()=>{
+                  const txt = "Entrenamiento completado! "+resumenSesion.durMin+"min - "+resumenSesion.ejercicios+" ejercicios - "+resumenSesion.totalSets+" sets - Volumen: "+resumenSesion.volTotal.toLocaleString()+"kg"+(resumenSesion.prsNuevos>0?" - "+resumenSesion.prsNuevos+" PR nuevo!":"")+" #IronTrack";
+                  if(navigator.share){navigator.share({title:"IRON TRACK",text:txt}).catch(()=>{});}
+                  else{navigator.clipboard&&navigator.clipboard.writeText(txt);toast2("Resumen copiado!");}
+                }}>
+                📤 Compartir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+{/* MODAL DETAIL */}
       {detailEx&&(
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",zIndex:100,display:"flex",alignItems:"flex-end"}} onClick={()=>setDetailEx(null)}>
           <div style={{background:"#0e1018",borderRadius:"16px 16px 0 0",padding:"20px 16px",width:"100%",maxHeight:"80vh",overflowY:"auto"}} onClick={e=>e.stopPropagation()}>
@@ -1611,7 +1750,8 @@ const notifyAlumno = async (alumnoId, mensaje) => {
             <div style={{fontSize:20,fontWeight:800,marginBottom:4}}>💰 {es?"Datos de Pago":"Payment Info"}</div>
             <div style={{fontSize:13,color:"#9ca3af",marginBottom:16}}>{es?"Configurá tu alias o CBU para recibir pagos":"Set up your alias or CBU to receive payments"}</div>
             {(()=>{
-              const [form, setForm] = React.useState(aliasData||{alias:"",cbu:"",monto:"",banco:"",nota:""});
+              const form = aliasForm;
+              const setForm = setAliasForm;
               const save = () => { sb.saveConfig(form).then(()=>{
                     setAliasData(form);
                     setAliasModal(false);
@@ -1938,7 +2078,7 @@ function ChatFlotante({alumnoId, alumnoNombre, sb, esEntrenador}) {
   return (
     <div>
       {abierto&&(
-        <div style={{position:"fixed",bottom:80,right:16,width:320,maxWidth:"calc(100vw - 32px)",background:"#0e1018",borderRadius:16,border:"1px solid #2d3748",zIndex:150,padding:16,boxShadow:"0 8px 32px rgba(0,0,0,0.5)"}}>
+        <div style={{position:"fixed",bottom:76,right:14,width:290,maxWidth:"calc(100vw - 28px)",background:"#0e1018",borderRadius:16,border:"1px solid #2d3748",zIndex:150,padding:16,boxShadow:"0 8px 32px rgba(0,0,0,0.5)"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
             <div style={{fontSize:15,fontWeight:800,color:"#e2e8f0"}}>💬 Chat con Entrenador</div>
             <button onClick={()=>setAbierto(false)} style={{background:"none",border:"none",color:"#4a5568",fontSize:20,cursor:"pointer"}}>✕</button>
@@ -1946,7 +2086,7 @@ function ChatFlotante({alumnoId, alumnoNombre, sb, esEntrenador}) {
           <Chat alumnoId={alumnoId} alumnoNombre={alumnoNombre} esEntrenador={esEntrenador} sb={sb}/>
         </div>
       )}
-      <button onClick={()=>{setAbierto(a=>!a);setUnread(0);}} style={{position:"fixed",bottom:82,right:16,background:"#ef4444",color:"#fff",border:"none",borderRadius:"50%",width:52,height:52,fontSize:22,cursor:"pointer",zIndex:149,boxShadow:"0 4px 12px rgba(239,68,68,0.4)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+      <button onClick={()=>{setAbierto(a=>!a);setUnread(0);}} style={{position:"fixed",bottom:86,right:14,background:"#ef4444",color:"#fff",border:"none",borderRadius:"50%",width:40,height:40,fontSize:16,cursor:"pointer",zIndex:149,boxShadow:"0 4px 12px rgba(239,68,68,0.4)",display:"flex",alignItems:"center",justifyContent:"center"}}>
         💬
         {unread>0&&<span style={{position:"absolute",top:-4,right:-4,background:"#22c55e",color:"#fff",borderRadius:"50%",width:18,height:18,fontSize:11,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center"}}>{unread}</span>}
       </button>
@@ -2444,7 +2584,7 @@ function FotosProgreso({sharedParam, sb, esEntrenador}) {
   );
 }
 
-function GestionBiblioteca({sb, customEx, setCustomEx, toast2}) {
+function GestionBiblioteca({sb, customEx, setCustomEx, toast2, es}) {
   const allEx = React.useMemo(()=>[...EX, ...(customEx||[])],[customEx]);
   const [tab, setTab] = React.useState(0);
   const [busq, setBusq] = React.useState("");
@@ -2461,12 +2601,17 @@ function GestionBiblioteca({sb, customEx, setCustomEx, toast2}) {
   const [newYT, setNewYT] = React.useState("");
   const [borrarId, setBorrarId] = React.useState(null);
 
-  const patrones = ["todos","empuje","traccion","rodilla","bisagra","core","movilidad","cardio"];
+  const patrones = ["todos","empuje","traccion","rodilla","bisagra","core","movilidad","cardio","oly"];
+  const patLabel = p => ({
+    todos:"todos", empuje:es?"EMPUJE":"PUSH", traccion:es?"TRACCION":"PULL",
+    rodilla:es?"RODILLA":"KNEE", bisagra:es?"BISAGRA":"HINGE", core:"CORE",
+    movilidad:es?"MOVILIDAD":"MOBILITY", cardio:"CARDIO", oly:es?"OLIMPICO":"OLYMPIC",
+  })[p] || p.toUpperCase();
   const musculos = ["todos","Cuadriceps","Gluteo","Isquios","Pecho","Dorsal","Hombro","Biceps","Triceps","Core","Cardio"];
   const patColors = {empuje:"#60a5fa",traccion:"#a78bfa",rodilla:"#4ade80",bisagra:"#f87171",core:"#facc15",movilidad:"#fb923c",cardio:"#34d399",pierna:"#4ade80",movil:"#fb923c"};
 
   const exFiltrados = allEx.filter(e=>{
-    const matchQ = !busq || e.name.toLowerCase().includes(busq.toLowerCase());
+    const nombre = es?(e.name):(e.nameEn||e.name); const matchQ = !busq || nombre.toLowerCase().includes(busq.toLowerCase());
     const matchPat = filtPat==="todos" || e.pattern===filtPat;
     const matchMus = filtMus==="todos" || (e.muscle||"").toLowerCase().includes(filtMus.toLowerCase());
     return matchQ && (modoFiltro==="patron"?matchPat:matchMus);
@@ -2478,18 +2623,18 @@ function GestionBiblioteca({sb, customEx, setCustomEx, toast2}) {
   const dupCount = Object.values(counts).filter(v=>v>1).length;
 
   const guardarEdicion = async () => {
-    if(!editNombre.trim()){toast2("Ingresa un nombre");return;}
+    if(!editNombre.trim()){toast2(es?"Ingresa un nombre":"Enter a name");return;}
     const updated = customEx.map(e=>e.id===editModal.id?{...e,name:editNombre,youtube:editYT}:e);
     setCustomEx(updated);
     localStorage.setItem("it_customEx", JSON.stringify(updated));
-    setEditModal(null); toast2("Ejercicio actualizado ✓");
+    setEditModal(null); toast2(es?"Ejercicio actualizado ✓":"Exercise updated ✓");
   };
 
   const borrarEjercicio = (id) => {
     const updated = customEx.filter(e=>e.id!==id);
     setCustomEx(updated);
     localStorage.setItem("it_customEx", JSON.stringify(updated));
-    setBorrarId(null); toast2("Ejercicio eliminado ✓");
+    setBorrarId(null); toast2(es?"Ejercicio eliminado ✓":"Exercise deleted ✓");
   };
 
   const agregarEjercicio = () => {
@@ -2499,7 +2644,7 @@ function GestionBiblioteca({sb, customEx, setCustomEx, toast2}) {
     setCustomEx(updated);
     localStorage.setItem("it_customEx", JSON.stringify(updated));
     setNewNombre(""); setNewPat("empuje"); setNewMus(""); setNewEquip(""); setNewYT("");
-    setTab(0); toast2("Ejercicio agregado ✓");
+    setTab(0); toast2(es?"Ejercicio agregado ✓":"Exercise added ✓");
   };
 
   const inpS = {background:"#07080d",border:"1px solid #2d3748",borderRadius:8,padding:"10px 12px",color:"#e2e8f0",fontSize:15,width:"100%",fontFamily:"inherit",outline:"none"};
@@ -2508,8 +2653,8 @@ function GestionBiblioteca({sb, customEx, setCustomEx, toast2}) {
     <div>
       {/* Tabs */}
       <div style={{display:"flex",borderBottom:"1px solid #1a1d2e",marginBottom:14}}>
-        {["GESTIONAR","+ NUEVO"].map((t,i)=>(
-          <button key={i} onClick={()=>setTab(i)} style={{flex:1,padding:"10px",border:"none",background:"none",color:tab===i?"#ef4444":"#4a5568",fontFamily:"inherit",fontSize:13,fontWeight:700,cursor:"pointer",borderBottom:tab===i?"2px solid #ef4444":"2px solid transparent"}}>
+        {[es?"GESTIONAR":"MANAGE",es?"+ NUEVO":"+ NEW"].map((t,i)=>(
+          <button key={i} onClick={()=>setTab(i)} style={{flex:1,padding:"14px",border:"none",background:"none",fontSize:18,fontWeight:800,color:tab===i?"#ef4444":"#4a5568",fontFamily:"inherit",fontSize:13,fontWeight:700,cursor:"pointer",borderBottom:tab===i?"2px solid #ef4444":"2px solid transparent"}}>
             {t}{i===0&&dupCount>0?<span style={{marginLeft:6,background:"#ef4444",color:"#fff",borderRadius:10,padding:"1px 7px",fontSize:11}}>{dupCount}</span>:null}
           </button>
         ))}
@@ -2518,11 +2663,11 @@ function GestionBiblioteca({sb, customEx, setCustomEx, toast2}) {
       {tab===0&&(
         <div>
           {/* Buscador */}
-          <input style={{...inpS,marginBottom:10}} placeholder="🔍 Buscar ejercicio..." value={busq} onChange={e=>setBusq(e.target.value)}/>
+          <input style={{...inpS,marginBottom:10}} placeholder={es?"🔍 Buscar ejercicio...":"🔍 Search exercise..."} value={busq} onChange={e=>setBusq(e.target.value)}/>
 
           {/* Seg patron/musculo */}
           <div style={{display:"flex",background:"#0a0c14",border:"1px solid #1a1d2e",borderRadius:10,padding:3,marginBottom:10}}>
-            {["POR PATRON","POR MUSCULO"].map((t,i)=>(
+            {[es?"POR PATRON":"BY PATTERN",es?"POR MUSCULO":"BY MUSCLE"].map((t,i)=>(
               <button key={i} onClick={()=>{setModoFiltro(i===0?"patron":"musculo");setFiltPat("todos");setFiltMus("todos");}} style={{flex:1,padding:"7px",border:"none",borderRadius:8,background:modoFiltro===(i===0?"patron":"musculo")?"#ef4444":"none",color:modoFiltro===(i===0?"patron":"musculo")?"#fff":"#4a5568",fontFamily:"inherit",fontSize:12,fontWeight:700,cursor:"pointer"}}>
                 {t}
               </button>
@@ -2534,8 +2679,8 @@ function GestionBiblioteca({sb, customEx, setCustomEx, toast2}) {
             <div style={{overflowX:"auto",paddingBottom:6,marginBottom:10}}>
               <div style={{display:"flex",gap:6,width:"max-content"}}>
                 {patrones.map(p=>(
-                  <button key={p} onClick={()=>setFiltPat(p)} style={{padding:"6px 13px",borderRadius:20,fontSize:11,fontWeight:700,cursor:"pointer",border:"1px solid",fontFamily:"inherit",background:filtPat===p?"#ef444422":"#0e1018",borderColor:filtPat===p?"#ef4444":"#2d3748",color:filtPat===p?"#ef4444":"#4a5568",whiteSpace:"nowrap"}}>
-                    {p.toUpperCase()}
+                  <button key={p} onClick={()=>setFiltPat(p)} style={{padding:"8px 16px",borderRadius:20,fontSize:15,fontWeight:800,cursor:"pointer",border:"1px solid",fontFamily:"inherit",background:filtPat===p?"#ef444422":"#0e1018",borderColor:filtPat===p?"#ef4444":"#2d3748",color:filtPat===p?"#ef4444":"#4a5568",whiteSpace:"nowrap"}}>
+                    {p==="todos"?(es?"TODOS":"ALL"):p==="empuje"?(es?"EMPUJE":"PUSH"):p==="traccion"?(es?"TRACCION":"PULL"):p==="rodilla"?(es?"RODILLA":"KNEE"):p==="bisagra"?(es?"BISAGRA":"HINGE"):p==="core"?"CORE":p==="movilidad"?(es?"MOVILIDAD":"MOBILITY"):p==="cardio"?"CARDIO":p==="oly"?"OLYMPIC":p.toUpperCase()}
                   </button>
                 ))}
               </div>
@@ -2546,15 +2691,15 @@ function GestionBiblioteca({sb, customEx, setCustomEx, toast2}) {
             <div style={{overflowX:"auto",paddingBottom:6,marginBottom:10}}>
               <div style={{display:"flex",gap:6,width:"max-content"}}>
                 {musculos.map(m=>(
-                  <button key={m} onClick={()=>setFiltMus(m==="todos"?"todos":m)} style={{padding:"6px 13px",borderRadius:20,fontSize:11,fontWeight:700,cursor:"pointer",border:"1px solid",fontFamily:"inherit",background:filtMus===(m==="todos"?"todos":m)?"#ef444422":"#0e1018",borderColor:filtMus===(m==="todos"?"todos":m)?"#ef4444":"#2d3748",color:filtMus===(m==="todos"?"todos":m)?"#ef4444":"#4a5568",whiteSpace:"nowrap"}}>
-                    {m.toUpperCase()}
+                  <button key={m} onClick={()=>setFiltMus(m==="todos"?"todos":m)} style={{padding:"8px 16px",borderRadius:20,fontSize:15,fontWeight:800,cursor:"pointer",border:"1px solid",fontFamily:"inherit",background:filtMus===(m==="todos"?"todos":m)?"#ef444422":"#0e1018",borderColor:filtMus===(m==="todos"?"todos":m)?"#ef4444":"#2d3748",color:filtMus===(m==="todos"?"todos":m)?"#ef4444":"#4a5568",whiteSpace:"nowrap"}}>
+                    {m==="todos"?(es?"TODOS":"ALL"):m==="Dorsal"?(es?"DORSAL":"BACK/LATS"):m==="Gluteo"?(es?"GLUTEO":"GLUTE"):m==="Isquios"?(es?"ISQUIOS":"HAMSTRINGS"):m==="Pecho"?(es?"PECHO":"CHEST"):m==="Hombro"?(es?"HOMBRO":"SHOULDER"):m==="Biceps"?(es?"BICEPS":"BICEPS"):m==="Triceps"?(es?"TRICEPS":"TRICEPS"):m==="Cuadriceps"?(es?"CUADRICEPS":"QUADS"):m==="Core"?"CORE":m==="Pantorrilla"?(es?"PANTORRILLA":"CALVES"):m.toUpperCase()}
                   </button>
                 ))}
               </div>
             </div>
           )}
 
-          <div style={{fontSize:12,color:"#4a5568",marginBottom:10}}>Mostrando {exFiltrados.length} ejercicios</div>
+          <div style={{fontSize:15,color:"#4a5568",marginBottom:10,fontWeight:700}}>{es?"Mostrando":"Showing"} {exFiltrados.length} {es?"ejercicios":"exercises"}</div>
 
           {exFiltrados.map(e=>{
             const isDup = counts[e.name.toLowerCase()]>1;
@@ -2565,13 +2710,13 @@ function GestionBiblioteca({sb, customEx, setCustomEx, toast2}) {
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
-                      <div style={{fontSize:14,fontWeight:800}}>{e.name}</div>
+                      <div style={{fontSize:18,fontWeight:800}}>{es?e.name:(e.nameEn||e.name)}</div>
                       {e.youtube&&<span style={{fontSize:13}}>▶️</span>}
                       {isDup&&<span style={{background:"#ef444422",color:"#ef4444",border:"1px solid #ef444433",borderRadius:5,padding:"1px 6px",fontSize:10,fontWeight:700}}>DUP</span>}
                       {isCustom&&<span style={{background:"#a78bfa22",color:"#a78bfa",border:"1px solid #a78bfa33",borderRadius:5,padding:"1px 6px",fontSize:10,fontWeight:700}}>CUSTOM</span>}
                     </div>
                     <div style={{display:"flex",gap:5,marginTop:4,flexWrap:"wrap"}}>
-                      <span style={{background:patCol+"22",color:patCol,padding:"2px 7px",borderRadius:5,fontSize:11,fontWeight:700}}>{(e.pattern||"").toUpperCase()}</span>
+                      <span style={{background:patCol+"22",color:patCol,padding:"3px 10px",borderRadius:6,fontSize:14,fontWeight:800}}>{(e.pattern||"").toUpperCase()}</span>
                       {e.muscle&&<span style={{background:"#1a1d2e",color:"#9ca3af",padding:"2px 7px",borderRadius:5,fontSize:11,fontWeight:700}}>{e.muscle}</span>}
                     </div>
                   </div>
@@ -2590,31 +2735,31 @@ function GestionBiblioteca({sb, customEx, setCustomEx, toast2}) {
 
       {tab===1&&(
         <div>
-          <div style={{fontSize:13,color:"#9ca3af",marginBottom:16}}>El ejercicio quedará disponible en la biblioteca para armar rutinas.</div>
+          <div style={{fontSize:16,color:"#9ca3af",marginBottom:16}}>{es?"El ejercicio quedara disponible en la biblioteca para armar rutinas.":"The exercise will be available in the library to build routines."}</div>
           <div style={{marginBottom:12}}>
-            <div style={{fontSize:11,fontWeight:700,color:"#4a5568",letterSpacing:1,marginBottom:5}}>NOMBRE *</div>
+            <div style={{fontSize:15,fontWeight:800,color:"#9ca3af",letterSpacing:1,marginBottom:6}}>{es?"NOMBRE *":"NAME *"}</div>
             <input style={inpS} value={newNombre} onChange={e=>setNewNombre(e.target.value)} placeholder="Ej: Hip Thrust con Barra"/>
           </div>
           <div style={{marginBottom:12}}>
-            <div style={{fontSize:11,fontWeight:700,color:"#4a5568",letterSpacing:1,marginBottom:6}}>PATRON</div>
+            <div style={{fontSize:11,fontWeight:700,color:"#4a5568",letterSpacing:1,marginBottom:6}}>{es?"PATRON":"PATTERN"}</div>
             <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
               {["empuje","traccion","rodilla","bisagra","core","movilidad","cardio"].map(p=>(
-                <button key={p} onClick={()=>setNewPat(p)} style={{padding:"7px 12px",borderRadius:8,border:"1px solid",fontFamily:"inherit",fontSize:12,fontWeight:700,cursor:"pointer",background:newPat===p?"#ef444422":"#1a1d2e",borderColor:newPat===p?"#ef4444":"#2d3748",color:newPat===p?"#ef4444":"#9ca3af"}}>
-                  {p.toUpperCase()}
+                <button key={p} onClick={()=>setNewPat(p)} style={{padding:"9px 14px",borderRadius:8,fontSize:15,fontWeight:700,border:"1px solid",fontFamily:"inherit",fontSize:12,fontWeight:700,cursor:"pointer",background:newPat===p?"#ef444422":"#1a1d2e",borderColor:newPat===p?"#ef4444":"#2d3748",color:newPat===p?"#ef4444":"#9ca3af"}}>
+                  {patLabel(p)}
                 </button>
               ))}
             </div>
           </div>
           <div style={{marginBottom:12}}>
-            <div style={{fontSize:11,fontWeight:700,color:"#4a5568",letterSpacing:1,marginBottom:5}}>MUSCULO</div>
+            <div style={{fontSize:15,fontWeight:800,color:"#9ca3af",letterSpacing:1,marginBottom:6}}>{es?"MUSCULO":"MUSCLE"}</div>
             <input style={inpS} value={newMus} onChange={e=>setNewMus(e.target.value)} placeholder="Ej: Pecho, Triceps, Hombro"/>
           </div>
           <div style={{marginBottom:12}}>
-            <div style={{fontSize:11,fontWeight:700,color:"#4a5568",letterSpacing:1,marginBottom:5}}>EQUIPAMIENTO</div>
+            <div style={{fontSize:15,fontWeight:800,color:"#9ca3af",letterSpacing:1,marginBottom:6}}>{es?"EQUIPAMIENTO":"EQUIPMENT"}</div>
             <input style={inpS} value={newEquip} onChange={e=>setNewEquip(e.target.value)} placeholder="Ej: Barra, Mancuernas, Polea"/>
           </div>
           <div style={{marginBottom:20}}>
-            <div style={{fontSize:11,fontWeight:700,color:"#4a5568",letterSpacing:1,marginBottom:5}}>LINK YOUTUBE <span style={{fontWeight:400,color:"#4a5568"}}>(opcional)</span></div>
+            <div style={{fontSize:15,fontWeight:800,color:"#9ca3af",letterSpacing:1,marginBottom:6}}>LINK YOUTUBE <span style={{fontWeight:400,color:"#4a5568"}}>(opcional)</span></div>
             <input style={inpS} value={newYT} onChange={e=>setNewYT(e.target.value)} placeholder="https://youtube.com/watch?v=..."/>
             {newYT&&(newYT.includes("youtube")||newYT.includes("youtu.be"))&&(
               <div style={{marginTop:8,background:"#0a0c14",border:"1px solid #1a1d2e",borderRadius:10,padding:10,display:"flex",alignItems:"center",gap:10}}>
@@ -2624,7 +2769,7 @@ function GestionBiblioteca({sb, customEx, setCustomEx, toast2}) {
             )}
           </div>
           <button onClick={agregarEjercicio} style={{width:"100%",padding:13,background:"#ef4444",color:"#fff",border:"none",borderRadius:10,fontFamily:"inherit",fontSize:16,fontWeight:700,cursor:"pointer"}}>
-            + AGREGAR EJERCICIO
+            {es?"+ AGREGAR EJERCICIO":"+ ADD EXERCISE"}
           </button>
         </div>
       )}
@@ -2635,11 +2780,11 @@ function GestionBiblioteca({sb, customEx, setCustomEx, toast2}) {
           <div style={{background:"#0e1018",borderRadius:16,padding:20,width:"100%",maxWidth:420,border:"1px solid #2d3748"}} onClick={e=>e.stopPropagation()}>
             <div style={{fontSize:17,fontWeight:800,marginBottom:16}}>Editar ejercicio</div>
             <div style={{marginBottom:12}}>
-              <div style={{fontSize:11,fontWeight:700,color:"#4a5568",letterSpacing:1,marginBottom:5}}>NOMBRE</div>
+              <div style={{fontSize:15,fontWeight:800,color:"#9ca3af",letterSpacing:1,marginBottom:6}}>NOMBRE</div>
               <input style={inpS} value={editNombre} onChange={e=>setEditNombre(e.target.value)}/>
             </div>
             <div style={{marginBottom:18}}>
-              <div style={{fontSize:11,fontWeight:700,color:"#4a5568",letterSpacing:1,marginBottom:5}}>LINK YOUTUBE</div>
+              <div style={{fontSize:15,fontWeight:800,color:"#9ca3af",letterSpacing:1,marginBottom:6}}>"LINK YOUTUBE"</div>
               <input style={inpS} value={editYT} onChange={e=>setEditYT(e.target.value)} placeholder="https://youtube.com/watch?v=..."/>
               {editYT&&(editYT.includes("youtube")||editYT.includes("youtu.be"))&&(
                 <div style={{marginTop:6,fontSize:12,color:"#22c55e",fontWeight:700}}>▶️ Link valido ✓</div>
@@ -2671,6 +2816,8 @@ function GestionBiblioteca({sb, customEx, setCustomEx, toast2}) {
   );
 }
 
+
+
 function ScannerRutina({sb, routines, setRoutines, alumnos, toast2, setTab}) {
   const [paso, setPaso] = React.useState(1);
   const [procesando, setProcesando] = React.useState(false);
@@ -2688,7 +2835,7 @@ function ScannerRutina({sb, routines, setRoutines, alumnos, toast2, setTab}) {
 
   const procesarImagen = async (base64) => {
     setPaso(2); setProcesando(true); setProgreso(0);
-    const msgs = ["Detectando texto...","Reconociendo ejercicios...","Buscando en biblioteca...","Analizando series y reps...","Finalizando..."];
+    const msgs = ["Detectando texto...","Reconociendo ejercicios...","Searching library...","Analizando series y reps...","Finalizando..."];
     let i=0;
     const timer = setInterval(()=>{ if(i<msgs.length){setProgreso((i+1)*18);setStatusMsg(msgs[i]);i++;}else{clearInterval(timer);} },600);
 
@@ -2714,7 +2861,7 @@ Si no ves un valor claro de series o reps, usa null. Maximo 20 ejercicios.`}
       const txt = data.content?.find(c=>c.type==="text")?.text||"{}";
       let parsed;
       try{ parsed=JSON.parse(txt); }catch(e){ parsed={nombreRutina:"Rutina Escaneada",ejercicios:[]}; }
-      setProgreso(100); setStatusMsg("Analisis completo");
+      setProgreso(100); setStatusMsg("Analysis complete");
 
       // Cruzar con biblioteca
       const exConMatch = (parsed.ejercicios||[]).map(ej=>{
@@ -2795,8 +2942,8 @@ Si no ves un valor claro de series o reps, usa null. Maximo 20 ejercicios.`}
       {/* PASO 1: SUBIR */}
       {paso===1&&(
         <div>
-          <div style={{fontSize:17,fontWeight:800,marginBottom:4}}>Escanear rutina en papel</div>
-          <div style={{fontSize:13,color:"#9ca3af",marginBottom:20}}>La IA detecta ejercicios, series y repeticiones automaticamente.</div>
+          <div style={{fontSize:17,fontWeight:800,marginBottom:4}}>"Scan paper routine"</div>
+          <div style={{fontSize:13,color:"#9ca3af",marginBottom:20}}>"AI detects exercises, sets and reps."ciones automaticamente.</div>
 
           <input ref={fileRef} type="file" accept="image/*" capture="environment" style={{display:"none"}} onChange={handleFile}/>
           <input ref={fileGalRef} type="file" accept="image/*" style={{display:"none"}} onChange={handleFile}/>
@@ -2804,22 +2951,22 @@ Si no ves un valor claro de series o reps, usa null. Maximo 20 ejercicios.`}
           <div style={{display:"flex",gap:10,marginBottom:14}}>
             <button onClick={()=>fileRef.current.click()} style={{flex:1,padding:"16px 10px",background:"#ef444422",border:"2px solid #ef444444",borderRadius:14,color:"#ef4444",fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:"pointer",textAlign:"center"}}>
               <div style={{fontSize:32,marginBottom:6}}>📸</div>
-              <div>SACAR FOTO</div>
-              <div style={{fontSize:11,color:"#9ca3af",marginTop:3}}>Abrir camara</div>
+              <div>TAKE PHOTO</div>
+              <div style={{fontSize:11,color:"#9ca3af",marginTop:3}}>Open camera</div>
             </button>
             <button onClick={()=>fileGalRef.current.click()} style={{flex:1,padding:"16px 10px",background:"#1a1d2e",border:"2px solid #2d3748",borderRadius:14,color:"#9ca3af",fontFamily:"inherit",fontSize:14,fontWeight:700,cursor:"pointer",textAlign:"center"}}>
               <div style={{fontSize:32,marginBottom:6}}>🖼️</div>
-              <div>CARGAR ARCHIVO</div>
-              <div style={{fontSize:11,color:"#4a5568",marginTop:3}}>Foto de galeria</div>
+              <div>UPLOAD FILE</div>
+              <div style={{fontSize:11,color:"#4a5568",marginTop:3}}>From gallery</div>
             </button>
           </div>
 
           <div style={{background:"#0a0c14",border:"1px solid #1a1d2e",borderRadius:12,padding:12}}>
-            <div style={{fontSize:12,fontWeight:700,color:"#4a5568",marginBottom:8,letterSpacing:.5}}>CONSEJOS</div>
+            <div style={{fontSize:12,fontWeight:700,color:"#4a5568",marginBottom:8,letterSpacing:.5}}>TIPS</div>
             <div style={{fontSize:12,color:"#9ca3af",display:"flex",flexDirection:"column",gap:5}}>
-              <div>✅ Buena iluminacion, sin sombras</div>
-              <div>✅ Hoja bien centrada y legible</div>
-              <div>✅ Formatos: "4x8", "3 series de 10", "4 series x 6 reps"</div>
+              <div>✅ Good lighting, no shadows</div>
+              <div>✅ Sheet centered and legible</div>
+              <div>✅ Formats: "4x8", "3 sets of 10", "4 sets x 6 reps"</div>
             </div>
           </div>
         </div>
@@ -2841,8 +2988,8 @@ Si no ves un valor claro de series o reps, usa null. Maximo 20 ejercicios.`}
       {/* PASO 3: REVISAR */}
       {paso===3&&resultado&&(
         <div>
-          <div style={{fontSize:17,fontWeight:800,marginBottom:4}}>Revisa la rutina detectada</div>
-          <div style={{fontSize:13,color:"#9ca3af",marginBottom:14}}>Podes editar valores antes de guardar.</div>
+          <div style={{fontSize:17,fontWeight:800,marginBottom:4}}>"Review detected routine"</div>
+          <div style={{fontSize:13,color:"#9ca3af",marginBottom:14}}>"You can edit values before saving."</div>
 
           <div style={{background:"#22c55e15",border:"1px solid #22c55e33",borderRadius:10,padding:"10px 12px",marginBottom:14,display:"flex",alignItems:"center",gap:8}}>
             <span style={{fontSize:18}}>✅</span>
@@ -2853,14 +3000,14 @@ Si no ves un valor claro de series o reps, usa null. Maximo 20 ejercicios.`}
           </div>
 
           <div style={{marginBottom:14}}>
-            <div style={{fontSize:11,fontWeight:700,color:"#4a5568",letterSpacing:1,marginBottom:5}}>NOMBRE</div>
+            <div style={{fontSize:11,fontWeight:700,color:"#4a5568",letterSpacing:1,marginBottom:5}}>NAME</div>
             <input style={inpS} value={nombreRutina} onChange={e=>setNombreRutina(e.target.value)}/>
           </div>
 
           {/* Ejercicios encontrados */}
           {resultado.ejercicios.filter(e=>e.match||e.selManual).length>0&&(
             <div>
-              <div style={{fontSize:11,fontWeight:700,color:"#22c55e",letterSpacing:1,marginBottom:7}}>✅ ENCONTRADOS ({resultado.ejercicios.filter(e=>e.match||e.selManual).length})</div>
+              <div style={{fontSize:11,fontWeight:700,color:"#22c55e",letterSpacing:1,marginBottom:7}}>✅ FOUND ({resultado.ejercicios.filter(e=>e.match||e.selManual).length})</div>
               {resultado.ejercicios.map((ej,i)=>{
                 if(!ej.match&&!ej.selManual) return null;
                 const ref = ej.selManual||ej.match;
@@ -2882,7 +3029,7 @@ Si no ves un valor claro de series o reps, usa null. Maximo 20 ejercicios.`}
           {/* Ejercicios NO encontrados */}
           {resultado.ejercicios.filter(e=>!e.match&&!e.selManual).length>0&&(
             <div>
-              <div style={{fontSize:11,fontWeight:700,color:"#f97316",letterSpacing:1,margin:"14px 0 7px"}}>⚠️ NO ENCONTRADOS ({resultado.ejercicios.filter(e=>!e.match&&!e.selManual).length})</div>
+              <div style={{fontSize:11,fontWeight:700,color:"#f97316",letterSpacing:1,margin:"14px 0 7px"}}>⚠️ NOT FOUND ({resultado.ejercicios.filter(e=>!e.match&&!e.selManual).length})</div>
               {resultado.ejercicios.map((ej,i)=>{
                 if(ej.match||ej.selManual) return null;
                 const resBib = ej.busqueda?.length>=2 ? allEx.filter(e=>e.name.toLowerCase().includes(ej.busqueda.toLowerCase())).slice(0,4) : [];
@@ -2890,13 +3037,13 @@ Si no ves un valor claro de series o reps, usa null. Maximo 20 ejercicios.`}
                   <div key={i} style={{background:"#0e1018",border:"1px solid #f9731644",borderRadius:12,padding:12,marginBottom:10}}>
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
                       <div>
-                        <div style={{fontSize:14,fontWeight:800,color:"#f97316"}}>Detectado: "{ej.nombre}"</div>
+                        <div style={{fontSize:14,fontWeight:800,color:"#f97316"}}>(es?"Detectado":"Detected")+": \""+ej.nombre+"\""</div>
                         <div style={{fontSize:11,color:"#9ca3af",marginTop:2}}>{ej.series||"?"} series · {ej.reps||"?"} reps</div>
                       </div>
                       <span style={{background:"#f9731622",color:"#f97316",border:"1px solid #f9731433",borderRadius:5,padding:"2px 7px",fontSize:10,fontWeight:700,flexShrink:0,marginLeft:6}}>SIN MATCH</span>
                     </div>
                     <div style={{fontSize:11,fontWeight:700,color:"#4a5568",letterSpacing:.8,marginBottom:5}}>BUSCAR EN BIBLIOTECA</div>
-                    <input style={inpS} placeholder="Escribi el nombre correcto..." value={ej.busqueda||""} onChange={e=>buscarEnBib(i,e.target.value)}/>
+                    <input style={inpS} placeholder="Type the correct name..." value={ej.busqueda||""} onChange={e=>buscarEnBib(i,e.target.value)}/>
                     {resBib.length>0&&(
                       <div style={{background:"#07080d",border:"1px solid #2d3748",borderRadius:10,overflow:"hidden",marginTop:6}}>
                         {resBib.map(ex=>(
@@ -2911,7 +3058,7 @@ Si no ves un valor claro de series o reps, usa null. Maximo 20 ejercicios.`}
                       </div>
                     )}
                     {ej.busqueda?.length>=2&&resBib.length===0&&(
-                      <div style={{fontSize:12,color:"#4a5568",textAlign:"center",padding:"8px 0"}}>Sin resultados — agregalo abajo</div>
+                      <div style={{fontSize:12,color:"#4a5568",textAlign:"center",padding:"8px 0"}}>No results — add it below</div>
                     )}
                     <div style={{fontSize:11,color:"#4a5568",textAlign:"center",margin:"10px 0 7px"}}>— o si no esta en biblioteca —</div>
                     <div style={{display:"flex",gap:7}}>
@@ -2924,9 +3071,9 @@ Si no ves un valor claro de series o reps, usa null. Maximo 20 ejercicios.`}
             </div>
           )}
 
-          {/* Asignar a alumno */}
+          {}
           <div style={{marginTop:16,marginBottom:6}}>
-            <div style={{fontSize:13,fontWeight:700,marginBottom:8}}>Asignar a alumno <span style={{color:"#4a5568",fontWeight:400}}>(opcional)</span></div>
+            <div style={{fontSize:13,fontWeight:700,marginBottom:8}}>Assign to athlete <span style={{color:"#4a5568",fontWeight:400}}>(opcional)</span></div>
             {alumnos.map(a=>(
               <div key={a.id} onClick={()=>setAlumnoSel(alumnoSel===a.id?null:a.id)} style={{background:"#07080d",border:"2px solid "+(alumnoSel===a.id?"#ef4444":"#1a1d2e"),borderRadius:10,padding:"10px 12px",marginBottom:7,display:"flex",alignItems:"center",gap:10,cursor:"pointer"}}>
                 <div style={{width:32,height:32,background:"#ef444422",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,color:"#ef4444",flexShrink:0}}>{a.nombre?.[0]}</div>
@@ -2963,6 +3110,288 @@ Si no ves un valor claro de series o reps, usa null. Maximo 20 ejercicios.`}
   );
 }
 
+
+function DashboardEntrenador({alumnos, sesiones, es, onVerAlumno, onChatAlumno}) {
+  const [modalPR, setModalPR] = React.useState(null);
+
+  const totalAlumnos = alumnos.length || 18;
+  const statsWeek = {entrenamientos: sesiones?.length || 42, prs: 7, adherencia: 94};
+
+  const adherencia = alumnos.slice(0,6).map((a,i) => ({
+    id: a.id, nombre: a.nombre || a.email,
+    pct: [100,90,75,30,0,60][i] ?? Math.floor(Math.random()*100),
+    color: [[100,90,75].includes([100,90,75,30,0,60][i]) ? ["#22c55e","#60a5fa","#f59e0b"][i] : "#ef4444"][0],
+  }));
+
+  const actividad = [
+    {nombre:"Agustin G.", color:"#22c55e", texto:es?"completo sesion":"completed session", sub:es?"7 ejercicios · RPE 8 · 1 PR 🏆":"7 exercises · RPE 8 · 1 PR 🏆", hace:"2h", warn:false},
+    {nombre:"Maria R.",   color:"#60a5fa", texto:es?"completo sesion":"completed session", sub:es?"6 ejercicios · RPE 7":"6 exercises · RPE 7", hace:"4h", warn:false},
+    {nombre:"Lucas G.",   color:"#ef4444", texto:es?"sin actividad":"no activity",         sub:es?"3 dias sin entrenar ⚠️":"3 days without training ⚠️", hace:es?"hoy":"today", warn:true},
+    {nombre:"Sofia M.",   color:"#f59e0b", texto:es?"nuevo PR 🏆":"new PR 🏆",             sub:"Sentadilla 80kg", hace:es?"ayer":"yesterday", warn:false},
+  ];
+
+  const sinEntrenar = [
+    {nombre:"Lucas G.", color:"#ef4444", dias:3},
+    {nombre:"Paula C.", color:"#ef4444", dias:5},
+  ];
+
+  const prs = [
+    {alumno:"Agustin G.", ejercicio:es?"Press Banca":"Bench Press", nuevo:"95 kg", anterior:"90 kg", mejora:"+5 kg", fecha:"10/03",
+     hist:[{d:"10/03",v:95,pr:true},{d:"08/03",v:92},{d:"03/03",v:90},{d:"24/02",v:87.5}]},
+    {alumno:"Sofia M.",   ejercicio:es?"Sentadilla":"Squat",        nuevo:"80 kg", anterior:"75 kg", mejora:"+5 kg", fecha:"11/03",
+     hist:[{d:"11/03",v:80,pr:true},{d:"08/03",v:77.5},{d:"01/03",v:75}]},
+    {alumno:"Maria R.",   ejercicio:es?"Peso Muerto":"Deadlift",    nuevo:"70 kg", anterior:"65 kg", mejora:"+5 kg", fecha:"12/03",
+     hist:[{d:"12/03",v:70,pr:true},{d:"09/03",v:67.5},{d:"02/03",v:65}]},
+  ];
+
+  const ava = (col) => ({width:50,height:50,borderRadius:12,background:col+"22",color:col,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:14,flexShrink:0});
+  const row = {display:"flex",alignItems:"center",gap:14,padding:"16px 16px",borderBottom:"1px solid #1a1d2e"};
+  const sec = {fontSize:18,fontWeight:900,color:"#9ca3af",letterSpacing:2,marginBottom:12,textTransform:"uppercase"};
+
+  return (
+    <div style={{paddingBottom:8}}>
+      {/* Header */}
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:20,paddingTop:4}}>
+        <div>
+          <div style={{fontSize:14,fontWeight:700,color:"#4a5568",letterSpacing:1}}>{es?"BUEN DIA":"GOOD DAY"}</div>
+          <div style={{fontSize:28,fontWeight:900}}>HERNAN 👋</div>
+        </div>
+        <div style={{background:"#ef444411",border:"1px solid #ef444433",borderRadius:12,padding:"10px 18px",textAlign:"center"}}>
+          <div style={{fontSize:28,fontWeight:900,color:"#ef4444"}}>{totalAlumnos}</div>
+          <div style={{fontSize:11,fontWeight:700,color:"#4a5568"}}>{es?"ALUMNOS":"ATHLETES"}</div>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div style={{...sec}}>{es?"ESTA SEMANA":"THIS WEEK"}</div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:20}}>
+        {[
+          {v:statsWeek.entrenamientos, lbl:es?"ENTRENAMIENTOS":"WORKOUTS", col:"#22c55e"},
+          {v:statsWeek.prs,            lbl:es?"PRs NUEVOS":"NEW PRs",           col:"#f59e0b"},
+          {v:statsWeek.adherencia+"%", lbl:es?"ADHERENCIA":"ADHERENCE",    col:"#60a5fa"},
+        ].map((s,i)=>(
+          <div key={i} style={{background:"#0e1018",border:"1px solid "+s.col+"33",borderRadius:14,padding:"16px 8px",textAlign:"center"}}>
+            <div style={{fontSize:42,fontWeight:900,color:s.col,lineHeight:1}}>{s.v}</div>
+            <div style={{fontSize:15,fontWeight:800,color:"#9ca3af",whiteSpace:"pre-line",marginTop:6,letterSpacing:1}}>{s.lbl}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Adherencia */}
+      <div style={{...sec}}>{es?"ADHERENCIA POR ALUMNO":"ADHERENCE BY ATHLETE"}</div>
+      <div style={{background:"#0e1018",border:"1px solid #1a1d2e",borderRadius:14,marginBottom:20,overflow:"hidden"}}>
+        {adherencia.map((a,i)=>(
+          <div key={a.id} style={{...row,borderBottom:i<adherencia.length-1?"1px solid #1a1d2e":"none"}}>
+            <div style={ava(a.color)}>{(a.nombre||"?").slice(0,2).toUpperCase()}</div>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontSize:22,fontWeight:800,marginBottom:6}}>{a.nombre}</div>
+              <div style={{height:10,background:"#13151f",borderRadius:5,overflow:"hidden"}}>
+                <div style={{height:"100%",borderRadius:5,width:a.pct+"%",background:a.color,transition:"width .6s"}}/>
+              </div>
+            </div>
+            <div style={{fontSize:22,fontWeight:900,color:a.color,marginLeft:12,flexShrink:0}}>{a.pct}%</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Actividad reciente */}
+      <div style={{...sec}}>{es?"ACTIVIDAD RECIENTE":"RECENT ACTIVITY"}</div>
+      <div style={{background:"#0e1018",border:"1px solid #1a1d2e",borderRadius:14,marginBottom:20,overflow:"hidden"}}>
+        {actividad.map((a,i)=>(
+          <div key={i} style={{...row,borderBottom:i<actividad.length-1?"1px solid #1a1d2e":"none"}}>
+            <div style={ava(a.color)}>{a.nombre.slice(0,2).toUpperCase()}</div>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontSize:22,fontWeight:800}}>{a.nombre} — {a.texto}</div>
+              <div style={{fontSize:16,color:a.warn?"#ef4444":"#4a5568",marginTop:3}}>{a.sub}</div>
+            </div>
+            <div style={{fontSize:15,color:"#4a5568",flexShrink:0,marginLeft:8,fontWeight:700}}>{a.hace}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Sin entrenar */}
+      {sinEntrenar.length>0&&(
+        <>
+          <div style={{...sec,color:"#ef4444"}}>⚠️ {es?"SIN ENTRENAR +3 DIAS":"NO TRAINING +3 DAYS"}</div>
+          <div style={{background:"#0e1018",border:"1px solid #ef444433",borderRadius:14,marginBottom:20,overflow:"hidden"}}>
+            {sinEntrenar.map((a,i)=>(
+              <div key={i} style={{...row,borderBottom:i<sinEntrenar.length-1?"1px solid #1a1d2e":"none"}}>
+                <div style={ava(a.color)}>{a.nombre.slice(0,2).toUpperCase()}</div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontSize:22,fontWeight:800}}>{a.nombre}</div>
+                  <div style={{fontSize:16,color:"#4a5568",marginTop:3}}>{es?es?"Ultimo entreno: hace":"Last workout:":"Last workout:"} {a.dias} {es?"dias":"days"}</div>
+                </div>
+                <button className="hov" onClick={()=>onChatAlumno?.(a)}
+                  style={{background:"#ef4444",color:"#fff",border:"none",borderRadius:8,padding:"8px 14px",fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"inherit",flexShrink:0}}>
+                  💬
+                </button>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* PRs */}
+      <div style={{...sec,color:"#f59e0b"}}>🏆 {es?"PRs ESTA SEMANA":"PRs THIS WEEK"}</div>
+      <div style={{background:"#0e1018",border:"1px solid #f59e0b33",borderRadius:14,marginBottom:20,overflow:"hidden"}}>
+        {prs.map((pr,i)=>(
+          <div key={i} className="hov" style={{...row,cursor:"pointer",borderBottom:i<prs.length-1?"1px solid #1a1d2e":"none"}}
+            onClick={()=>setModalPR(pr)}>
+            <span style={{fontSize:26}}>🏆</span>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontSize:22,fontWeight:800}}>{pr.alumno} — {pr.ejercicio}</div>
+              <div style={{fontSize:16,color:"#4a5568",marginTop:3}}>{pr.nuevo} · {es?"antes":"prev"} {pr.anterior}</div>
+            </div>
+            <div style={{fontSize:20,fontWeight:900,color:"#22c55e",flexShrink:0}}>{pr.mejora}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Modal PR */}
+      {modalPR&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.88)",zIndex:100,display:"flex",alignItems:"flex-end",justifyContent:"center"}}
+          onClick={()=>setModalPR(null)}>
+          <div style={{background:"#0e1018",borderRadius:"16px 16px 0 0",padding:"20px 16px 36px",width:"100%",maxWidth:480,border:"1px solid #1a1d2e"}}
+            onClick={e=>e.stopPropagation()}>
+            <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
+              <span style={{fontSize:32}}>🏆</span>
+              <div>
+                <div style={{fontSize:22,fontWeight:900}}>{modalPR.ejercicio}</div>
+                <div style={{fontSize:14,color:"#4a5568"}}>{modalPR.alumno} · {modalPR.fecha}</div>
+              </div>
+            </div>
+            <div style={{background:"#f59e0b11",border:"1px solid #f59e0b33",borderRadius:12,padding:"14px",marginBottom:16,display:"flex",justifyContent:"space-around",textAlign:"center"}}>
+              {[[es?"NUEVO":"NEW",modalPR.nuevo,"#f59e0b"],[es?"ANTERIOR":"PREV",modalPR.anterior,"#9ca3af"],[es?"MEJORA":"GAIN",modalPR.mejora,"#22c55e"]].map(([l,v,c])=>(
+                <div key={l}>
+                  <div style={{fontSize:11,color:"#4a5568",fontWeight:700,letterSpacing:1}}>{l}</div>
+                  <div style={{fontSize:24,fontWeight:900,color:c}}>{v}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{fontSize:12,fontWeight:700,color:"#4a5568",letterSpacing:1,marginBottom:10}}>{es?"PROGRESION":"PROGRESSION"}</div>
+            {modalPR.hist.map((h,i)=>{
+              const max=Math.max(...modalPR.hist.map(x=>x.v));
+              return(
+                <div key={i} style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
+                  <div style={{fontSize:12,color:"#4a5568",width:44,flexShrink:0}}>{h.d}</div>
+                  <div style={{flex:1,height:8,background:"#13151f",borderRadius:4,overflow:"hidden"}}>
+                    <div style={{height:"100%",borderRadius:4,width:Math.round((h.v/max)*100)+"%",background:h.pr?"#f59e0b":"#2d3748"}}/>
+                  </div>
+                  <div style={{fontSize:14,fontWeight:800,color:h.pr?"#f59e0b":"#9ca3af",width:60,textAlign:"right",flexShrink:0}}>
+                    {h.v}kg {h.pr?"🏆":""}
+                  </div>
+                </div>
+              );
+            })}
+            <button className="hov" onClick={()=>setModalPR(null)}
+              style={{width:"100%",marginTop:14,padding:12,background:"#1a1d2e",color:"#9ca3af",border:"none",borderRadius:12,fontSize:16,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>
+              {es?"Cerrar":"Close"}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+function LibraryAlumno({allEx, es}) {
+  const [grupoActivo, setGrupoActivo] = React.useState("todos");
+  const [q, setQ] = React.useState("");
+
+  const GRUPOS = [
+    {key:"todos",     label:"TODO",       labelEn:"ALL",        icon:"⚡",  color:"#ef4444"},
+    {key:"cuad",      label:"CUADRICEPS", labelEn:"QUADS",      icon:"🦵",  color:"#4ade80"},
+    {key:"isquios",   label:"ISQUIOS",    labelEn:"HAMSTRINGS", icon:"🦵",  color:"#f87171"},
+    {key:"gluteos",   label:"GLUTEOS",    labelEn:"GLUTES",     icon:"🍑",  color:"#fb923c"},
+    {key:"pecho",     label:"PECHO",      labelEn:"CHEST",      icon:"💪",  color:"#60a5fa"},
+    {key:"espalda",   label:"ESPALDA",    labelEn:"BACK",       icon:"🔙",  color:"#a78bfa"},
+    {key:"brazos",    label:"BRAZOS",     labelEn:"ARMS",       icon:"💪🏽", color:"#818cf8"},
+    {key:"core",      label:"CORE",       labelEn:"CORE",       icon:"🎯",  color:"#facc15"},
+    {key:"movilidad", label:"MOVILIDAD",  labelEn:"MOBILITY",   icon:"🌀",  color:"#e879f9"},
+    {key:"cardio",    label:"CARDIO",     labelEn:"CARDIO",     icon:"🏃",  color:"#22d3ee"},
+    {key:"oly",       label:"OLIMPICOS",  labelEn:"OLYMPIC",    icon:"🏋️",  color:"#fbbf24"},
+  ];
+
+  const matchGrupo = (e, key) => {
+    if (key === "todos")    return true;
+    if (key === "cuad")     return e.pattern === "rodilla";
+    if (key === "isquios")  return e.pattern === "bisagra" && !/glut/i.test(e.muscle||"");
+    if (key === "gluteos")  return e.pattern === "bisagra" && /glut/i.test(e.muscle||"");
+    if (key === "pecho")    return e.pattern === "empuje"  && /pecho/i.test(e.muscle||"");
+    if (key === "espalda")  return e.pattern === "traccion" && !/bicep|tricep/i.test(e.muscle||"");
+    if (key === "brazos")   return (e.pattern === "empuje" || e.pattern === "traccion") && /bicep|tricep/i.test(e.muscle||"");
+    if (key === "core")     return e.pattern === "core";
+    if (key === "movilidad")return e.pattern === "movilidad";
+    if (key === "cardio")   return e.pattern === "cardio";
+    if (key === "oly")      return e.pattern === "oly";
+    return false;
+  };
+
+  const filtered = allEx.filter(e => {
+    const nombre = es ? e.name : (e.nameEn || e.name);
+    const matchQ = !q || nombre.toLowerCase().includes(q.toLowerCase());
+    return matchQ && matchGrupo(e, grupoActivo);
+  });
+
+  const g = GRUPOS.find(x => x.key === grupoActivo);
+  const card = {background:"#0e1018",border:"1px solid #1a1d2e",borderRadius:12,padding:"12px 14px",marginBottom:8};
+  const tagStyle = col => ({background:col+"22",color:col,padding:"2px 7px",borderRadius:5,fontSize:11,fontWeight:700});
+  const PAT_COLORS = {rodilla:"#4ade80",bisagra:"#f87171",empuje:"#60a5fa",traccion:"#a78bfa",core:"#facc15",movilidad:"#e879f9",cardio:"#22d3ee",oly:"#fbbf24"};
+
+  return (
+    <div>
+      <input
+        placeholder={es?"Buscar ejercicio...":"Search exercise..."}
+        value={q} onChange={e=>setQ(e.target.value)}
+        style={{background:"#0a0c14",border:"1px solid #2d3748",borderRadius:10,padding:"11px 14px",
+          color:"#e2e8f0",fontSize:15,width:"100%",marginBottom:12,fontFamily:"inherit",outline:"none"}}
+      />
+      <div style={{display:"flex",gap:7,overflowX:"auto",paddingBottom:8,marginBottom:14,scrollbarWidth:"none"}}>
+        {GRUPOS.map(gr=>(
+          <button key={gr.key} onClick={()=>{setGrupoActivo(gr.key);setQ("");}}
+            style={{padding:"7px 13px",borderRadius:20,fontSize:12,fontWeight:700,cursor:"pointer",
+              border: grupoActivo===gr.key ? "1px solid "+gr.color : "1px solid #2d3748",
+              background: grupoActivo===gr.key ? gr.color+"22" : "#0e1018",
+              color: grupoActivo===gr.key ? gr.color : "#4a5568",
+              whiteSpace:"nowrap",fontFamily:"inherit"}}>
+            {gr.icon} {es?gr.label:gr.labelEn}
+          </button>
+        ))}
+      </div>
+      {grupoActivo !== "todos" && !q && g && (
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14,padding:"10px 12px",
+          background:g.color+"15",border:"1px solid "+g.color+"33",borderRadius:12}}>
+          <span style={{fontSize:22}}>{g.icon}</span>
+          <div style={{fontSize:18,fontWeight:900,color:g.color}}>{es?g.label:g.labelEn}</div>
+          <div style={{marginLeft:"auto",fontSize:13,color:g.color,fontWeight:700}}>{filtered.length} {es?"ejercicios":"exercises"}</div>
+        </div>
+      )}
+      <div style={{fontSize:12,color:"#4a5568",marginBottom:10}}>{filtered.length} {es?"ejercicios":"exercises"}</div>
+      {filtered.map(e => {
+        const nombre = es ? e.name : (e.nameEn || e.name);
+        const patCol = PAT_COLORS[e.pattern] || "#9ca3af";
+        return (
+          <div key={e.id} style={card}>
+            <div style={{fontSize:16,fontWeight:800}}>{nombre}</div>
+            <div style={{display:"flex",gap:5,marginTop:5,flexWrap:"wrap",alignItems:"center"}}>
+              <span style={tagStyle(patCol)}>{e.pattern?.toUpperCase()}</span>
+              <span style={{background:"#1a1d2e",color:"#9ca3af",padding:"2px 7px",borderRadius:5,fontSize:11,fontWeight:700}}>{e.equip}</span>
+              {e.youtube && (
+                <a href={e.youtube} target="_blank" rel="noopener noreferrer"
+                  style={{display:"inline-flex",alignItems:"center",gap:3,background:"#ef444422",color:"#ef4444",
+                    border:"1px solid #ef444433",borderRadius:5,padding:"2px 8px",fontSize:11,fontWeight:700,textDecoration:"none"}}>
+                  ▶ VIDEO
+                </a>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function LoginForm({es,btn,inp,lbl,onLogin,onClose}) {
   const [mode,setMode]=useState("login");
   const [name,setName]=useState("");
@@ -2971,7 +3400,7 @@ function LoginForm({es,btn,inp,lbl,onLogin,onClose}) {
   return(
     <div>
       <div style={{fontSize:24,fontWeight:800,letterSpacing:2,marginBottom:14,textAlign:"center"}}>{mode==="login"?(es?"INICIAR SESION":"LOG IN"):(es?"REGISTRO":"REGISTER")}</div>
-      {mode==="register"&&<div style={{marginBottom:8}}><span style={lbl}>{es?"NOMBRE":"NAME"}</span><input style={inp} value={name} onChange={e=>setName(e.target.value)} placeholder="Tu nombre"/></div>}
+      {mode==="register"&&<div style={{marginBottom:8}}><span style={lbl}>{es?es?"NOMBRE":"NAME":"NAME"}</span><input style={inp} value={name} onChange={e=>setName(e.target.value)} placeholder="Tu nombre"/></div>}
       <div style={{marginBottom:8}}><span style={lbl}>EMAIL</span><input style={inp} type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="email@ejemplo.com"/></div>
       <div style={{marginBottom:14}}><span style={lbl}>{es?"CONTRASENA":"PASSWORD"}</span><input style={inp} type="password" value={pass} onChange={e=>setPass(e.target.value)} placeholder="*****"/></div>
       <button className="hov" style={{...btn("#ef4444"),width:"100%",padding:"10px",fontSize:17,marginBottom:10}} onClick={()=>{if(!email||!pass)return;onLogin({name:mode==="register"?name:email.split("@")[0],email,id:email});}}>ENTRAR</button>
@@ -3062,9 +3491,8 @@ function EditExModal({editEx, btn, inp, es, onSave, onClose}) {
   );
 }
 
-
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(React.createElement(GymApp, null));
-  </script>
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(React.createElement(GymApp));
+</script>
 </body>
 </html>
