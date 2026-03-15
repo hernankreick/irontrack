@@ -10,7 +10,7 @@
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0;}
-body{background:#07080d;color:#e2e8f0;font-family:"Barlow Condensed",Arial,sans-serif;overscroll-behavior:none;overflow:hidden;}
+body{background:#07080d;color:#e2e8f0;font-family:"Barlow Condensed",Arial,sans-serif;overscroll-behavior:none;}
 ::-webkit-scrollbar{display:none;}
 input,select,textarea,button{font-family:"Barlow Condensed",Arial,sans-serif;}
 .hov{transition:opacity .15s;cursor:pointer;}
@@ -344,6 +344,7 @@ function GymApp() {
   const [editEx, setEditEx] = useState(null);
   const [loginModal, setLoginModal] = useState(false);
   const [session, setSession] = useState(null);
+  const [preSessionPRs, setPreSessionPRs] = useState({});
   const [resumenSesion, setResumenSesion] = useState(null);
   const [chatOpenId, setChatOpenId] = useState(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -481,6 +482,13 @@ const notifyAlumno = async (alumnoId, mensaje) => {
       } catch(e) {}
     }
     toast2("Serie guardada ✓");
+    // Actualizar kg en la rutina para autocompletar sets restantes
+    if(parseFloat(kg)>0) {
+      setRoutines(prev=>prev.map(r=>({...r,days:r.days.map(d=>({...d,
+        exercises:d.exercises.map(ex=>ex.id===exId?{...ex,kg:String(kg)}:ex),
+        warmup:(d.warmup||[]).map(ex=>ex.id===exId?{...ex,kg:String(kg)}:ex)
+      }))})));
+    }
   };
 
   const bg=darkMode?"#07080d":"#f0f2f7";
@@ -508,7 +516,7 @@ const notifyAlumno = async (alumnoId, mensaje) => {
   const esAlumno = readOnly || sessionData?.role==="alumno";
   const tabs2 = esAlumno
     ? [{k:"plan",icon:"📅",lbl:es?"PLAN":"PLAN"},{k:"library",icon:"🏋️",lbl:es?"EJERCICIOS":"EXERCISES"},{k:"progress",icon:"📊",lbl:es?"PROGRESO":"PROGRESS"}]
-    : [{k:"plan",icon:"📊",lbl:es?"DASHBOARD":"DASHBOARD"},{k:"routines",icon:"📋",lbl:es?"RUTINAS":"ROUTINES"},{k:"scanner",icon:"📷",lbl:es?"SCANNER":"SCANNER"},{k:"biblioteca",icon:"🏋️",lbl:es?"EJERCICIOS":"EXERCISES"},{k:"progress",icon:"📅",lbl:es?"PLAN":"PLAN"},{k:"alumnos",icon:"👥",lbl:es?"ALUMNOS":"ATHLETES"}];
+    : [{k:"plan",icon:"📊",lbl:es?"DASHBOARD":"DASHBOARD"},{k:"routines",icon:"📋",lbl:es?"RUTINAS":"ROUTINES"},{k:"scanner",icon:"📷",lbl:es?"SCANNER":"SCANNER"},{k:"biblioteca",icon:"🏋️",lbl:es?"EJERCICIOS":"EXERCISES"},{k:"alumnos",icon:"👥",lbl:es?"ALUMNOS":"ATHLETES"}];
 
   const generatePDF = (r) => {
     const patColors = {pierna:"#4ade80",empuje:"#60a5fa",traccion:"#a78bfa",core:"#facc15",movil:"#fb923c"};
@@ -679,7 +687,7 @@ const notifyAlumno = async (alumnoId, mensaje) => {
         </div>
       )}
 
-      <div style={{padding:"12px 16px"}}>
+      <div style={{padding:"12px 16px",overflowY:"auto",height:"calc(100vh - 130px)",paddingBottom:90}}>
 
         {/* PAGOS - visible para alumno si hay alias configurado */}
         {tab==="plan"&&esAlumno&&aliasData?.alias&&(
@@ -870,9 +878,15 @@ const notifyAlumno = async (alumnoId, mensaje) => {
                       );
                     })}
                     <button className="hov" style={{...btn("#4ade8022"),color:"#4ade80",width:"100%",marginTop:4,padding:"10px",fontSize:16,letterSpacing:1}} onClick={()=>{
+                      // Guardar max de CADA ejercicio ANTES de que empiece la sesion
+                      const snapshot = {};
+                      (r.days[di]?.exercises||[]).forEach(ex=>{
+                        snapshot[ex.id] = progress[ex.id]?.max || 0;
+                      });
+                      setPreSessionPRs({...snapshot});
                       setSession({rId:r.id,dIdx:di,exIdx:0,startTime:Date.now()});
-                      toast2("💪 Sesion iniciada!");
-                    }}>{es?"INICIAR SESION":"START SESSION"}</button>
+                      toast2("💪 "+es?"Sesion iniciada!":"Session started!");
+                    }}>{es?"INICIAR ENTRENAMIENTO":"START WORKOUT"}</button>
                   </div>
                 ))}
               </div>
@@ -974,9 +988,15 @@ const notifyAlumno = async (alumnoId, mensaje) => {
                           <button className="hov" style={{background:"#1a1d2e",border:"none",borderRadius:8,padding:"4px 8px",fontSize:13,color:"#9ca3af",cursor:"pointer"}} onClick={()=>setEditEx({rId:r.id,dIdx:di,eIdx:ei,bloque,ex:{...ex}})}>✏</button>
                           <button className="hov" style={{background:"#ef444422",border:"none",borderRadius:6,padding:"4px 9px",fontSize:13,color:"#ef4444",cursor:"pointer",fontWeight:700}} onClick={removeEx}>🗑️</button>
                         </div>
-                        <div style={{display:"flex",gap:10,flexWrap:"wrap",paddingLeft:40,marginTop:4}}>
+                        <div style={{display:"flex",gap:10,flexWrap:"wrap",paddingLeft:40,marginTop:4,alignItems:"center"}}>
                           {ex.kg&&<span style={{fontSize:18,fontWeight:700,color:"#9ca3af"}}>{ex.kg}kg</span>}
                           <span style={{fontSize:18,fontWeight:700,color:"#9ca3af"}}>{fmtP(ex.pause)}</span>
+                          {info?.youtube&&(
+                            <a href={info.youtube} target="_blank" rel="noreferrer"
+                              style={{background:"#ef444422",color:"#ef4444",border:"1px solid #ef444433",borderRadius:6,padding:"3px 10px",fontSize:14,fontWeight:700,textDecoration:"none"}}>
+                              ▶ VIDEO
+                            </a>
+                          )}
                         </div>
                         {(ex.weeks||[]).length>0&&(
                           <div style={{display:"flex",gap:4,marginTop:4,overflowX:"auto",paddingLeft:34}}>
@@ -1451,17 +1471,28 @@ const notifyAlumno = async (alumnoId, mensaje) => {
               const durMin = Math.round((Date.now()-(session.startTime||Date.now()))/60000)||1;
               const exsCompleted = activeDay.exercises||[];
               const totalSets = exsCompleted.reduce((acc,ex)=>acc+(parseInt(ex.sets)||3),0);
+              // Calcular volumen REAL desde los sets registrados HOY
+              const hoy = new Date().toLocaleDateString("es-AR");
               const volTotal = exsCompleted.reduce((acc,ex)=>{
-                const kg=parseFloat(ex.kg)||0;
-                const sets=parseInt(ex.sets)||3;
-                const reps=parseInt(ex.reps)||8;
-                return acc+(kg*sets*reps);
+                const setsHoy = (progress[ex.id]?.sets||[]).filter(s=>s.date===hoy);
+                if(setsHoy.length>0){
+                  return acc + setsHoy.reduce((a,s)=>a+(s.kg||0)*(s.reps||0),0);
+                }
+                // fallback: ultimo kg x sets x reps de la rutina
+                const lastKg = progress[ex.id]?.sets?.[0]?.kg || parseFloat(ex.kg) || 0;
+                const sets = parseInt(ex.sets)||3;
+                const reps = parseInt(ex.reps)||8;
+                return acc+(lastKg*sets*reps);
               },0);
+              // PR: comparar el kg registrado hoy vs el maximo ANTES de iniciar la sesion
               const prsNuevos = exsCompleted.filter(ex=>{
-                const pg=progress[ex.id];
-                if(!pg||!pg.max) return false;
-                const maxKg=parseFloat(ex.kg)||0;
-                return maxKg>pg.max;
+                const pg = progress[ex.id];
+                if(!pg) return false;
+                const setsHoy = (pg.sets||[]).filter(s=>s.date===hoy);
+                if(setsHoy.length===0) return false;
+                const maxHoy = Math.max(...setsHoy.map(s=>s.kg||0));
+                const maxAntes = preSessionPRs[ex.id]||0;
+                return maxAntes>0 && maxHoy>maxAntes;
               }).length;
               setResumenSesion({
                 durMin,
@@ -1511,7 +1542,15 @@ const notifyAlumno = async (alumnoId, mensaje) => {
               const active=i===session.exIdx;
               return(
                 <div key={i} style={{background:active?"#ef444433":"#13151f",border:active?"1px solid #ef4444":"1px solid transparent",borderRadius:8,padding:"6px 10px",flexShrink:0,cursor:"pointer"}} onClick={()=>setSession(p=>({...p,exIdx:i}))}>
-                  <div style={{fontSize:19,fontWeight:700,marginBottom:3}}>{PATS[info?.pattern]?.icon} {es?info?.name:info?.nameEn}</div>
+                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:3}}>
+                    <span style={{fontSize:19,fontWeight:700}}>{PATS[info?.pattern]?.icon} {es?info?.name:info?.nameEn}</span>
+                    {info?.youtube&&(
+                      <a href={info.youtube} target="_blank" rel="noreferrer"
+                        style={{background:"#ef444422",color:"#ef4444",border:"1px solid #ef444433",borderRadius:6,padding:"2px 8px",fontSize:12,fontWeight:700,textDecoration:"none",flexShrink:0}}>
+                        ▶
+                      </a>
+                    )}
+                  </div>
                   <div style={{fontSize:16,color:"#4a5568"}}>{ex.sets}x{ex.reps}</div>
                   {active&&<button className="hov" style={{...btn("#4ade8022"),color:"#4ade80",fontSize:13,padding:"3px 8px",marginTop:4}} onClick={e=>{e.stopPropagation();setLogModal({...info,...ex});}}>Registrar</button>}
                 </div>
@@ -1530,8 +1569,21 @@ const notifyAlumno = async (alumnoId, mensaje) => {
               setCompletedDays(newCompleted);
               const durMin=Math.round((Date.now()-(session.startTime||Date.now()))/60000)||1;
               const exsCompleted=activeDay.exercises||[];
-              const volTotal=exsCompleted.reduce((acc,ex)=>{const kg=parseFloat(ex.kg)||0;const sets=parseInt(ex.sets)||3;const reps=parseInt(ex.reps)||8;return acc+(kg*sets*reps);},0);
-              const prsNuevos=exsCompleted.filter(ex=>{const pg=progress[ex.id];if(!pg||!pg.max)return false;return parseFloat(ex.kg)>pg.max;}).length;
+              const hoyFin=new Date().toLocaleDateString("es-AR");
+              const volTotal=exsCompleted.reduce((acc,ex)=>{
+                const setsHoy=(progress[ex.id]?.sets||[]).filter(s=>s.date===hoyFin);
+                return acc+setsHoy.reduce((a,s)=>a+(s.kg||0)*(s.reps||0),0);
+              },0);
+              const prsNuevos=exsCompleted.filter(ex=>{
+                const pg=progress[ex.id];
+                if(!pg) return false;
+                const setsHoy=(pg.sets||[]).filter(s=>s.date===hoyFin);
+                if(setsHoy.length===0) return false;
+                const maxHoy=Math.max(...setsHoy.map(s=>s.kg||0));
+                const maxAntes=preSessionPRs[ex.id]||0;
+                // Solo PR si habia registro previo Y supero el maximo
+                return maxAntes>0 && maxHoy>maxAntes;
+              }).length;
               setResumenSesion({durMin,ejercicios:exsCompleted.length,totalSets:exsCompleted.reduce((a,e)=>a+(parseInt(e.sets)||3),0),volTotal:Math.round(volTotal),prsNuevos,diaLabel:activeDay.label||("Dia "+(session.dIdx+1)),rutinaName:r?.name||"Entrenamiento",fecha:new Date().toLocaleDateString("es-AR")});
               setSession(null);
               if(readOnly&&sharedParam){try{const rutData=JSON.parse(atob(sharedParam));const alumnoId=rutData.alumnoId;if(alumnoId){sb.addSesion({alumno_id:alumnoId,rutina_nombre:r?.name||"",dia_label:activeDay.label||("Dia "+(session.dIdx+1)),dia_idx:session.dIdx,semana:currentWeek+1,ejercicios:exsCompleted.map(e=>e.id).join(","),fecha:new Date().toLocaleDateString("es-AR"),hora:new Date().toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit"})});}}catch(e){}}
@@ -1661,10 +1713,10 @@ const notifyAlumno = async (alumnoId, mensaje) => {
 
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
               {[
-                ["⏱","DURACIÓN",resumenSesion.durMin+" min","#60a5fa"],
-                ["🏋️","EJERCICIOS",resumenSesion.ejercicios,"#a78bfa"],
-                ["🔄","SETS TOTALES",resumenSesion.totalSets,"#4ade80"],
-                ["⚖️","VOLUMEN",resumenSesion.volTotal.toLocaleString()+" kg","#f59e0b"],
+                ["⏱",es?"DURACIÓN":"DURATION",resumenSesion.durMin+" min","#60a5fa"],
+                ["🏋️",es?"EJERCICIOS":"EXERCISES",resumenSesion.ejercicios,"#a78bfa"],
+                ["⚖️",es?"KG LEVANTADOS":"KG LIFTED",resumenSesion.volTotal.toLocaleString()+" kg","#f59e0b"],
+                [resumenSesion.prsNuevos>0?"🏆":"✓",es?"RÉCORD PERSONAL":"PERSONAL RECORD",resumenSesion.prsNuevos>0?(resumenSesion.prsNuevos+" PR!"):(es?"Sin PR":"No PR"),resumenSesion.prsNuevos>0?"#f59e0b":"#4a5568"],
               ].map(([icon,label,val,color])=>(
                 <div key={label} style={{background:"#13151f",borderRadius:12,padding:"14px 10px",border:"1px solid #1a1d2e"}}>
                   <div style={{fontSize:22}}>{icon}</div>
@@ -1683,20 +1735,39 @@ const notifyAlumno = async (alumnoId, mensaje) => {
               </div>
             )}
 
-            <div style={{display:"flex",gap:8}}>
-              <button className="hov" style={{flex:1,padding:"12px",background:"#1a1d2e",border:"none",borderRadius:12,color:"#9ca3af",fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}
+                        <button className="hov" style={{width:"100%",padding:"12px",background:"#1a1d2e",border:"none",borderRadius:12,color:"#9ca3af",fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"inherit",marginBottom:10}}
                 onClick={()=>setResumenSesion(null)}>
-                Cerrar
+                {es?"Cerrar":"Close"}
               </button>
-              <button className="hov" style={{flex:1,padding:"12px",background:"#ef4444",border:"none",borderRadius:12,color:"#fff",fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}
-                onClick={()=>{
-                  const txt = "Entrenamiento completado! "+resumenSesion.durMin+"min - "+resumenSesion.ejercicios+" ejercicios - "+resumenSesion.totalSets+" sets - Volumen: "+resumenSesion.volTotal.toLocaleString()+"kg"+(resumenSesion.prsNuevos>0?" - "+resumenSesion.prsNuevos+" PR nuevo!":"")+" #IronTrack";
-                  if(navigator.share){navigator.share({title:"IRON TRACK",text:txt}).catch(()=>{});}
-                  else{navigator.clipboard&&navigator.clipboard.writeText(txt);toast2("Resumen copiado!");}
-                }}>
-                📤 Compartir
-              </button>
-            </div>
+              {/* Compartir en redes */}
+              <div style={{marginBottom:4}}>
+                <div style={{fontSize:11,fontWeight:700,color:"#4a5568",letterSpacing:1,marginBottom:10,textAlign:"center"}}>{es?"COMPARTIR EN":"SHARE ON"}</div>
+                <div style={{display:"flex",gap:10,justifyContent:"center"}}>
+                  {/* WhatsApp */}
+                  <a href={"https://wa.me/?text="+encodeURIComponent("💪 "+resumenSesion.rutinaName+" completado! ⏱ "+resumenSesion.durMin+" min - "+resumenSesion.ejercicios+" ejercicios - "+resumenSesion.volTotal.toLocaleString()+"kg levantados"+(resumenSesion.prsNuevos>0?" | 🏆 "+resumenSesion.prsNuevos+" PR!":"")+" #IronTrack")}
+                    target="_blank" rel="noreferrer"
+                    style={{width:52,height:52,borderRadius:12,background:"#25d36622",border:"1px solid #25d36644",display:"flex",alignItems:"center",justifyContent:"center",textDecoration:"none"}}>
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M11.5 0C5.149 0 0 5.149 0 11.5c0 2.059.546 4.019 1.545 5.701L0 23l5.978-1.52A11.451 11.451 0 0011.5 23C17.851 23 23 17.851 23 11.5S17.851 0 11.5 0zm0 21.087a9.576 9.576 0 01-5.072-1.446l-.364-.217-3.548.902.918-3.453-.24-.378A9.567 9.567 0 011.913 11.5c0-5.289 4.299-9.587 9.587-9.587 5.289 0 9.587 4.298 9.587 9.587 0 5.288-4.298 9.587-9.587 9.587z"/></svg>
+                  </a>
+                  {/* Instagram - copia al portapapeles */}
+                  <button onClick={()=>{const txt="💪 "+resumenSesion.rutinaName+" completado! ⏱ "+resumenSesion.durMin+" min - "+resumenSesion.ejercicios+" ejercicios - "+resumenSesion.volTotal.toLocaleString()+"kg"+(resumenSesion.prsNuevos>0?" | 🏆 "+resumenSesion.prsNuevos+" PR!":"")+" #IronTrack";navigator.clipboard&&navigator.clipboard.writeText(txt);toast2("Copiado para Instagram ✓");}}
+                    style={{width:52,height:52,borderRadius:12,background:"linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)",border:"none",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                  </button>
+                  {/* Facebook */}
+                  <a href={"https://www.facebook.com/sharer/sharer.php?u=https://irontrack-two.vercel.app&quote="+encodeURIComponent("💪 "+resumenSesion.rutinaName+" completado! ⏱ "+resumenSesion.durMin+"min | ⚖️ "+resumenSesion.volTotal.toLocaleString()+"kg #IronTrack")}
+                    target="_blank" rel="noreferrer"
+                    style={{width:52,height:52,borderRadius:12,background:"#1877f222",border:"1px solid #1877f244",display:"flex",alignItems:"center",justifyContent:"center",textDecoration:"none"}}>
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                  </a>
+                  {/* X (Twitter) */}
+                  <a href={"https://twitter.com/intent/tweet?text="+encodeURIComponent("💪 "+resumenSesion.rutinaName+" completado! ⏱ "+resumenSesion.durMin+"min - "+resumenSesion.ejercicios+" ejercicios - "+resumenSesion.volTotal.toLocaleString()+"kg levantados"+(resumenSesion.prsNuevos>0?" 🏆 "+resumenSesion.prsNuevos+" PR!":"")+" #IronTrack #Fitness")}
+                    target="_blank" rel="noreferrer"
+                    style={{width:52,height:52,borderRadius:12,background:"#00000022",border:"1px solid #ffffff33",display:"flex",alignItems:"center",justifyContent:"center",textDecoration:"none"}}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                  </a>
+                </div>
+              </div>
           </div>
         </div>
       )}
@@ -1913,7 +1984,7 @@ const notifyAlumno = async (alumnoId, mensaje) => {
                   ".tag{display:inline-block;border-radius:6px;padding:2px 8px;font-size:12px;font-weight:700;margin-right:4px}",
                   "@media print{@page{margin:5mm;size:A4}button{display:none!important}}"
                 ].join("");
-                const fullHtml = "<!DOCTYPE html><html><head><meta charset=utf-8><title>"+pdfRoutine.r.name+" - Iron Track</title><style>"+styles+"</style></head><body>"+el.innerHTML+"<script>window.onload=function(){window.print();}<\/script></body></html>";
+                const fullHtml = "<!DOCTYPE html><html><head><meta charset=utf-8><title>"+pdfRoutine.r.name+" - Iron Track</title><style>"+styles+"</style></head><body>"+el.innerHTML+"<scr"+"ipt>window.onload=function(){window.print();}</"+"script></body></html>";
                 const blob = new Blob([fullHtml],{type:"text/html"});
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
@@ -2294,22 +2365,58 @@ function GraficoProgreso({progress, EX, readOnly, sharedParam, sb, sessionData})
       const startOfWeek = new Date(d);
       startOfWeek.setDate(d.getDate() - d.getDay());
       const semKey = startOfWeek.toISOString().slice(0,10);
-      if(!semanas[semKey]) semanas[semKey] = {series:0, tonelaje:0, label:semKey.slice(5)};
+      if(!semanas[semKey]) semanas[semKey] = {series:0, tonelaje:0, semKey};
       const ejercicios = Array.isArray(ses.ejercicios) ? ses.ejercicios : [];
       ejercicios.forEach(ex=>{
         const sets = ex.sets||[];
         sets.forEach(s=>{
-          const kg = parseFloat(s.kg)||0;
-          const reps = parseInt(s.reps)||0;
           semanas[semKey].series += 1;
-          semanas[semKey].tonelaje += kg*reps;
+          semanas[semKey].tonelaje += (parseFloat(s.kg)||0)*(parseInt(s.reps)||0);
         });
       });
     });
-    return Object.values(semanas).sort((a,b)=>a.label>b.label?1:-1).slice(-8);
+    // Ordenar cronologicamente (mas antigua primero = semana 1 a la izquierda)
+    const ordenadas = Object.values(semanas).sort((a,b)=>a.semKey>b.semKey?1:-1).slice(-8);
+    // Etiquetar semana 1, 2, 3...
+    return ordenadas.map((s,i)=>({...s, label:"Sem "+(i+1)}));
   };
 
-  // Datos por músculo semanal
+  // Series por patron de movimiento a lo largo de semanas
+  const getVolumenPorPatron = () => {
+    // Usar progress real: cada set registrado tiene kg, reps, date
+    const semanas = {};
+    Object.entries(progress||{}).forEach(([exId, pg])=>{
+      const exInfo = EX.find(e=>e.id===exId);
+      const patron = exInfo?.pattern||"otros";
+      (pg.sets||[]).forEach(s=>{
+        const fecha = s.date||"";
+        if(!fecha) return;
+        // Convertir fecha a comienzo de semana
+        const parts = fecha.split("/");
+        let d;
+        if(parts.length===3) {
+          // formato dd/mm/yyyy
+          d = new Date(parseInt(parts[2]), parseInt(parts[1])-1, parseInt(parts[0]));
+        } else {
+          d = new Date(fecha);
+        }
+        if(isNaN(d.getTime())) return;
+        const startOfWeek = new Date(d);
+        startOfWeek.setDate(d.getDate() - d.getDay());
+        const semKey = startOfWeek.toISOString().slice(0,10);
+        if(!semanas[semKey]) semanas[semKey] = {semKey, patrones:{}};
+        if(!semanas[semKey].patrones[patron]) semanas[semKey].patrones[patron] = {series:0, reps:0, tonelaje:0};
+        semanas[semKey].patrones[patron].series += 1;
+        semanas[semKey].patrones[patron].reps += parseInt(s.reps)||0;
+        semanas[semKey].patrones[patron].tonelaje += (parseFloat(s.kg)||0)*(parseInt(s.reps)||0);
+      });
+    });
+    const semsOrdenadas = Object.values(semanas).sort((a,b)=>a.semKey>b.semKey?1:-1).slice(-8);
+    const todosPatrones = [...new Set(semsOrdenadas.flatMap(s=>Object.keys(s.patrones)))];
+    return {semanas: semsOrdenadas.map((s,i)=>({...s,label:"Sem "+(i+1)})), patrones: todosPatrones};
+  };
+
+  // Total por musculo (para el tab volumen - resumen)
   const getVolumenMuscular = () => {
     const musculos = {};
     sesiones.forEach(ses=>{
@@ -2506,38 +2613,58 @@ function GraficoProgreso({progress, EX, readOnly, sharedParam, sb, sessionData})
         </div>
       )}
 
-      {/* VISTA: volumen muscular */}
-      {vista==="volumen"&&(
-        <div>
-          {volMuscular.length===0
-            ? <div style={{textAlign:"center",padding:30,color:"#4a5568",fontSize:13}}>Sin sesiones registradas aún</div>
-            : (
-              <div>
-                {volMuscular.map((m,i)=>{
-                  const maxS=volMuscular[0].series;
-                  const pct=Math.round(m.series/maxS*100);
-                  return (
-                    <div key={m.nombre} style={{marginBottom:12}}>
-                      <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
-                        <span style={{fontSize:14,fontWeight:700,color:"#e2e8f0"}}>{m.nombre}</span>
-                        <span style={{fontSize:13,color:"#9ca3af"}}>{m.series} series · {Math.round(m.tonelaje/1000*10)/10}t</span>
-                      </div>
-                      <div style={{background:"#1a1d2e",borderRadius:6,height:10,overflow:"hidden"}}>
-                        <div style={{background:COLORS[i%COLORS.length],height:"100%",width:pct+"%",borderRadius:6,transition:"width 0.5s"}}/>
-                      </div>
+      {/* VISTA: volumen por patron semanal */}
+      {vista==="volumen"&&(()=>{
+        const {semanas:semsVol, patrones:patsVol} = getVolumenPorPatron();
+        const PAT_COLORS = {empuje:"#60a5fa",traccion:"#a78bfa",rodilla:"#4ade80",bisagra:"#f87171",core:"#facc15",movilidad:"#e879f9",cardio:"#22d3ee",oly:"#fbbf24",otros:"#9ca3af"};
+        const PAT_LABELS = {empuje:"Empuje",traccion:"Traccion",rodilla:"Rodilla/Cuads",bisagra:"Bisagra/Glu",core:"Core",movilidad:"Movilidad",cardio:"Cardio",oly:"Olimpico",otros:"Otros"};
+        // Calcular totales por patron
+        const totalesPorPatron = {};
+        patsVol.forEach(pat=>{
+          totalesPorPatron[pat] = semsVol.reduce((acc,s)=>{
+            const d = s.patrones[pat]||{series:0,reps:0,tonelaje:0};
+            return {series:acc.series+(d.series||0), reps:acc.reps+(d.reps||0), tonelaje:acc.tonelaje+(d.tonelaje||0)};
+          }, {series:0,reps:0,tonelaje:0});
+        });
+        if(semsVol.length===0) return (
+          <div style={{textAlign:"center",padding:30,color:"#4a5568",fontSize:13}}>Sin sesiones registradas aun</div>
+        );
+        return (
+          <div>
+            <div style={{fontSize:16,color:"#9ca3af",marginBottom:14,fontWeight:700}}>Series por patron — {semsVol.length} semanas</div>
+            {patsVol.map((pat,pi)=>{
+              const col = PAT_COLORS[pat]||"#9ca3af";
+              const maxVal = Math.max(...semsVol.map(s=>(s.patrones[pat]?.series||0)),1);
+              return (
+                <div key={pat} style={{marginBottom:16}}>
+                  <div style={{marginBottom:6}}>
+                    <div style={{display:"flex",justifyContent:"space-between"}}>
+                      <span style={{fontSize:20,fontWeight:900,color:col}}>{PAT_LABELS[pat]||pat}</span>
+                      <span style={{fontSize:18,fontWeight:900,color:col}}>{totalesPorPatron[pat]?.series||0} series</span>
                     </div>
-                  );
-                })}
-                <div style={{background:"#0e1018",borderRadius:10,padding:10,marginTop:8,display:"flex",gap:8,justifyContent:"space-around"}}>
-                  <div style={{textAlign:"center"}}><div style={{fontSize:19,fontWeight:800,color:"#e2e8f0"}}>{volMuscular.reduce((a,m)=>a+m.series,0)}</div><div style={{fontSize:11,color:"#4a5568"}}>SERIES TOTALES</div></div>
-                  <div style={{textAlign:"center"}}><div style={{fontSize:19,fontWeight:800,color:"#ef4444"}}>{Math.round(volMuscular.reduce((a,m)=>a+m.tonelaje,0)/1000*10)/10}t</div><div style={{fontSize:11,color:"#4a5568"}}>TONELAJE TOTAL</div></div>
-                  <div style={{textAlign:"center"}}><div style={{fontSize:19,fontWeight:800,color:"#3b82f6"}}>{sesiones.length}</div><div style={{fontSize:11,color:"#4a5568"}}>SESIONES</div></div>
+                    <div style={{fontSize:15,color:"#4a5568",marginBottom:6}}>
+                      {totalesPorPatron[pat]?.reps||0} reps totales · {Math.round(totalesPorPatron[pat]?.tonelaje||0).toLocaleString()} kg tonelaje
+                    </div>
+                  </div>
+                  <div style={{display:"flex",gap:4,alignItems:"flex-end",height:60}}>
+                    {semsVol.map((s,si)=>{
+                      const val = s.patrones[pat]?.series||0;
+                      const pct = val/maxVal;
+                      return (
+                        <div key={si} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
+                          <div style={{fontSize:12,color:col,fontWeight:900}}>{val>0?val:""}</div>
+                          <div style={{width:"100%",background:col,borderRadius:"3px 3px 0 0",height:Math.max(pct*50,val>0?4:0),opacity:0.85}}/>
+                          <div style={{fontSize:12,color:"#4a5568",whiteSpace:"nowrap",fontWeight:700}}>{s.label}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            )
-          }
-        </div>
-      )}
+              );
+            })}
+          </div>
+        );
+      })()}
     </div>
   );
 }
@@ -2738,6 +2865,7 @@ function GestionBiblioteca({sb, customEx, setCustomEx, toast2, es}) {
   const [newEquip, setNewEquip] = React.useState("");
   const [newYT, setNewYT] = React.useState("");
   const [borrarId, setBorrarId] = React.useState(null);
+  const [ytOverrides, setYtOverrides] = React.useState(()=>{try{return JSON.parse(localStorage.getItem("it_yt_ov")||"{}")}catch(e){return {}}});
 
   const patrones = ["todos","empuje","traccion","rodilla","bisagra","core","movilidad","cardio","oly"];
   const musculos = ["todos","Cuadriceps","Gluteo","Isquios","Pecho","Dorsal","Hombro","Biceps","Triceps","Core","Pantorrilla"];
@@ -2763,10 +2891,18 @@ function GestionBiblioteca({sb, customEx, setCustomEx, toast2, es}) {
 
   const guardarEdicion = async () => {
     if(!editNombre.trim()){toast2(es?"Ingresa un nombre":"Enter a name");return;}
-    const updated = customEx.map(e=>e.id===editModal.id?{...e,name:editNombre,youtube:editYT}:e);
-    setCustomEx(updated);
-    localStorage.setItem("it_cex", JSON.stringify(updated));
-    setEditModal(null); toast2(es?"Ejercicio actualizado ✓":"Exercise updated ✓");
+    const isCustom = !!(customEx||[]).find(c=>c.id===editModal.id);
+    if(isCustom) {
+      const updated = customEx.map(e=>e.id===editModal.id?{...e,name:editNombre,youtube:editYT}:e);
+      setCustomEx(updated);
+      localStorage.setItem("it_cex", JSON.stringify(updated));
+    } else {
+      // Ejercicio base: guardar solo el override de youtube
+      const newOverrides = {...ytOverrides, [editModal.id]: editYT};
+      setYtOverrides(newOverrides);
+      localStorage.setItem("it_yt_ov", JSON.stringify(newOverrides));
+    }
+    setEditModal(null); toast2(es?"Link actualizado ✓":"Link updated ✓");
   };
   const borrarEjercicio = (id) => {
     const updated = customEx.filter(e=>e.id!==id);
@@ -2851,13 +2987,23 @@ function GestionBiblioteca({sb, customEx, setCustomEx, toast2, es}) {
             const patCol = patColors[e.pattern]||"#9ca3af";
             const isCustom = !!(customEx||[]).find(c=>c.id===e.id);
             const nombre = es?e.name:(e.nameEn||e.name);
+            const ytUrl = ytOverrides[e.id] || e.youtube || "";
             return (
               <div key={e.id} style={{background:"#0e1018",border:"1px solid "+(isDup?"#ef444444":"#1a1d2e"),borderRadius:12,padding:"12px 14px",marginBottom:8}}>
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap",marginBottom:5}}>
                       <div style={{fontSize:18,fontWeight:800}}>{nombre}</div>
-                      {e.youtube&&<span style={{fontSize:13}}>▶️</span>}
+                      {ytUrl&&(
+                        <a href={ytUrl} target="_blank" rel="noreferrer"
+                          style={{background:"#ef444422",color:"#ef4444",border:"1px solid #ef444433",borderRadius:5,padding:"2px 8px",fontSize:12,fontWeight:700,textDecoration:"none",display:"inline-flex",alignItems:"center",gap:3}}>
+                          ▶ VIDEO
+                        </a>
+                      )}
+                      <button onClick={()=>{setEditModal(e);setEditNombre(e.name);setEditYT(ytUrl);}}
+                        style={{background:"#1a1d2e",border:"none",borderRadius:5,padding:"2px 8px",fontSize:11,fontWeight:700,color:"#9ca3af",cursor:"pointer",fontFamily:"inherit"}}>
+                        🔗 {ytUrl?(es?"Editar link":"Edit link"):(es?"+ Link":"+ Link")}
+                      </button>
                       {isDup&&<span style={{background:"#ef444422",color:"#ef4444",border:"1px solid #ef444433",borderRadius:5,padding:"2px 7px",fontSize:11,fontWeight:700}}>DUP</span>}
                       {isCustom&&<span style={{background:"#a78bfa22",color:"#a78bfa",border:"1px solid #a78bfa33",borderRadius:5,padding:"2px 7px",fontSize:11,fontWeight:700}}>CUSTOM</span>}
                     </div>
@@ -2868,7 +3014,7 @@ function GestionBiblioteca({sb, customEx, setCustomEx, toast2, es}) {
                   </div>
                   {isCustom&&(
                     <div style={{display:"flex",gap:6,flexShrink:0}}>
-                      <button onClick={()=>{setEditModal(e);setEditNombre(e.name);setEditYT(e.youtube||"");}} style={{background:"#1a1d2e",border:"none",borderRadius:8,padding:"6px 10px",color:"#9ca3af",cursor:"pointer",fontSize:14}}>✏️</button>
+                      <button onClick={()=>{setEditModal(e);setEditNombre(e.name);setEditYT(ytUrl);}} style={{background:"#1a1d2e",border:"none",borderRadius:8,padding:"6px 10px",color:"#9ca3af",cursor:"pointer",fontSize:14}}>✏️</button>
                       <button onClick={()=>setBorrarId(e.id)} style={{background:"#ef444422",color:"#ef4444",border:"none",borderRadius:8,padding:"6px 10px",cursor:"pointer",fontSize:14}}>🗑</button>
                     </div>
                   )}
@@ -2930,7 +3076,8 @@ function GestionBiblioteca({sb, customEx, setCustomEx, toast2, es}) {
             </div>
             <div style={{marginBottom:18}}>
               <div style={{fontSize:11,fontWeight:700,color:"#4a5568",letterSpacing:1,marginBottom:5}}>LINK YOUTUBE</div>
-              <input style={inpS} value={editYT} onChange={e=>setEditYT(e.target.value)} placeholder="https://youtube.com/..."/>
+              <div style={{fontSize:11,color:"#f59e0b",marginBottom:5}}>💡 {es?"Ideal: video corto -30 seg (YouTube Shorts)":"Ideal: short video -30 sec (YouTube Shorts)"}</div>
+              <input style={inpS} value={editYT} onChange={e=>setEditYT(e.target.value)} placeholder="https://youtube.com/shorts/..."/>
               {editYT&&(editYT.includes("youtube")||editYT.includes("youtu.be"))&&(
                 <div style={{marginTop:6,fontSize:12,color:"#22c55e",fontWeight:700}}>▶️ {es?"Link valido ✓":"Valid link ✓"}</div>
               )}
@@ -2991,11 +3138,7 @@ function ScannerRutina({sb, routines, setRoutines, alumnos, toast2, setTab, es})
           max_tokens:1000,
           messages:[{role:"user",content:[
             {type:"image",source:{type:"base64",media_type:"image/jpeg",data:base64.split(",")[1]||base64}},
-            {type:"text",text:`Sos un asistente de gimnasio. Analiza esta imagen de una rutina de entrenamiento escrita a mano o impresa.
-Extrae todos los ejercicios con sus series y repeticiones.
-Responde SOLO con JSON valido, sin texto extra, sin backticks:
-{"nombreRutina":"nombre detectado o Rutina Escaneada","ejercicios":[{"nombre":"nombre exacto del ejercicio","series":4,"reps":"8","notas":"notas si hay"}]}
-Si no ves un valor claro de series o reps, usa null. Maximo 20 ejercicios.`}
+            {type:"text",text:"Sos un asistente de gimnasio. Analiza esta imagen de una rutina de entrenamiento escrita a mano o impresa. Extrae todos los ejercicios con sus series y repeticiones. Responde SOLO con JSON valido, sin texto extra, sin backticks: {\"nombreRutina\":\"nombre detectado o Rutina Escaneada\",\"ejercicios\":[{\"nombre\":\"nombre exacto del ejercicio\",\"series\":4,\"reps\":\"8\",\"notas\":\"notas si hay\"}]} Si no ves un valor claro de series o reps, usa null. Maximo 20 ejercicios."}
           ]}]}
         )
       });
@@ -3633,9 +3776,7 @@ function EditExModal({editEx, btn, inp, es, onSave, onClose}) {
     </div>
   );
 }
-
 const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(React.createElement(GymApp));
-</script>
+root.render(React.createElement(GymApp));</script>
 </body>
 </html>
