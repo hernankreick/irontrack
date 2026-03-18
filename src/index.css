@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    overscroll-behavior: none;
+    font-family: 'Barlow Condensed', Arial, sans-serif;
+  }
+  ::-webkit-scrollbar { display: none; }
+  input, select, textarea, button {
+    font-family: 'Barlow Condensed', Arial, sans-serif;
+  }
+}
+
+@layer components {
+  /* Botón base con feedback táctil */
+  .btn-tap {
+    @apply transition-opacity active:opacity-70 cursor-pointer;
+  }
+  /* Card base */
+  .card {
+    @apply bg-surface border border-border rounded-xl p-3 mb-2;
+  }
+  /* Tag / badge */
+  .tag {
+    @apply text-[11px] font-bold px-2 py-0.5 rounded;
+  }
+  /* Input base */
+  .input {
+    @apply bg-deep border border-border2 rounded-xl px-4 py-3 text-white text-[15px] w-full outline-none placeholder:text-muted;
+  }
+  /* Nav button */
+  .nav-btn {
+    @apply flex-1 py-2.5 text-center text-[9px] font-bold text-muted bg-transparent border-none cursor-pointer tracking-wide;
+  }
+  .nav-btn.active {
+    @apply text-brand;
+  }
+  /* Section title */
+  .section-title {
+    @apply text-[11px] font-bold text-muted tracking-widest mb-2;
+  }
+  /* Chip filtro */
+  .chip {
+    @apply px-3 py-1.5 rounded-full text-[12px] font-bold border border-border2 bg-surface text-muted whitespace-nowrap cursor-pointer transition-all;
+  }
+  .chip.active-brand {
+    @apply border-brand bg-brand/10 text-brand;
+  }
+  /* Row dentro de card */
+  .row {
+    @apply flex items-center gap-3 px-4 py-3 border-b border-border last:border-b-0 cursor-pointer hover:bg-mid transition-colors;
+  }
+  /* Avatar */
+  .avatar {
+    @apply w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shrink-0;
+  }
+  /* Modal backdrop */
+  .modal-bg {
+    @apply fixed inset-0 bg-black/88 z-50 flex items-end justify-center;
+  }
+  .modal-sheet {
+    @apply bg-surface rounded-t-2xl px-4 pb-9 pt-5 w-full max-w-[480px] max-h-[85vh] overflow-y-auto border-t-2 border-border;
+  }
+  .modal-handle {
+    @apply w-10 h-1 bg-border2 rounded-full mx-auto mb-4;
+  }
+}
